@@ -14,13 +14,13 @@ open Lexer
 let rec eval e =
   match e with
     | Num(x) -> x
-    | TimesExpr(x,y) -> eval(x) * eval (y)
-    | DivExpr(x,y) -> eval(x) / eval (y)
-    | PlusExpr(x,y) -> eval(x) + eval (y)
-    | MinusExpr(x,y) -> eval(x) - eval (y)
-    | PowExpr(x,y) -> eval(x) ** eval (y)
-    | UPlusExpr(x) -> eval(x)
-    | UMinusExpr(x) -> - eval(x)
+    | Times(x,y) -> eval(x) * eval (y)
+    | Div(x,y) -> eval(x) / eval (y)
+    | Plus(x,y) -> eval(x) + eval (y)
+    | Minus(x,y) -> eval(x) - eval (y)
+    | Pow(x,y) -> eval(x) ** eval (y)
+    | UPlus(x) -> eval(x)
+    | UMinus(x) -> - eval(x)
 
 // We
 let parse input =

@@ -9,11 +9,20 @@ open Parser
 System.Globalization.CultureInfo.CurrentCulture <- new System.Globalization.CultureInfo("en-US")
 }
 
+
+
 // We define macros for some regular expressions we will use later
 let digit       = ['0'-'9']
-let num         = digit+ ( '.' digit+)?  ('E' ('+'|'-')? digit+ )?
+let num         = digit+
 let whitespace  = [' ' '\t']
 let newline     = "\n\r" | '\n' | '\r'
+let letter		= ['a'-'z'] | ['A'-'Z']
+let var			= letter (letter | digit | '_')*
+let if			= "if" (whitespace | newline)+
+let fi			= (whitespace | newline)+ "fi"
+let do			= "do" (whitespace | newline)+
+let od			= (whitespace | newline)+ "od"
+
 
 // We define now the rules for recognising and building tokens
 // for each of the tokens of our language we need a rule
@@ -24,7 +33,7 @@ rule tokenize = parse
 | whitespace    { tokenize lexbuf }
 | newline       { lexbuf.EndPos <- lexbuf.EndPos.NextLine; tokenize lexbuf; }
 // deal with tokens that need to be built
-| num           { NUM(Double.Parse(LexBuffer<_>.LexemeString lexbuf)) }
+| num           { NUM(Int.Parse(LexBuffer<_>.LexemeString lexbuf)) }
 | '*'           { TIMES }
 | '/'           { DIV }
 | '+'           { PLUS }
@@ -32,4 +41,29 @@ rule tokenize = parse
 | '^'           { POW }
 | '('           { LPAR }
 | ')'           { RPAR }
+| ":="			{ ASSIGN }
+| "skip"		{ SKIP }
+| ';'			{ SEMICOLON }
+| if			{ IF }
+| fi			{ FI }
+| do			{ DO }
+| od			{ OD }
+| "->"			{ PRED }
+| '['			{ LBRA }
+| ']'			{ RBRA }
+| var			{ VAR }
+| "true"		{ TRUE }
+| "false"		{ FALSE }
+| '&'			{ AND }
+| '|'			{ OR }
+| '!'			{ NEG }
+| '='			{ EQ }
+| '>'			{ GT }
+| '<'			{ LT }
 | eof           { EOF }
+
+// C ::= x := a | A[a] := a | skip | C ; C | if GC fi | do GC od
+// GC ::= b -> C | GC [] GC
+// a ::= n | x | A[a] | a + a | a - a | a * a | a / a | - a | a ^ a | (a)
+// b ::= true | false | b & b | b | b | b && b | b || b | !b
+//			  | a = a | a != a | a > a | a >= a | a < a | a <= a | (b)
