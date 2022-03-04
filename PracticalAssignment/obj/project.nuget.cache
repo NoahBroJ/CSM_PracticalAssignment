@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "m5qecLxlKdrD+UEoOEA+FFGju/9EXpNSnuxoQNGmube/y0KAC/MADJefjVQ2lsH7pe6F1gajVEgYagPbGQ9KGA==",
+  "success": true,
+  "projectFilePath": "D:\\Documents\\DTU\\CSM\\CSM_PracticalAssignment\\PracticalAssignment\\PracticalAssignment.fsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Noah Bro-Jørgensen\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
