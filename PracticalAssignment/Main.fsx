@@ -1,4 +1,4 @@
-﻿#r "C:/Users/Noah Bro-Jørgensen/.nuget/packages/fslexyacc.runtime/10.0.0/lib/net46/FsLexYacc.Runtime.dll"
+﻿#r "10.0.0/lib/net46/FsLexYacc.Runtime.dll"
 
 open FSharp.Text.Lexing
 open System
