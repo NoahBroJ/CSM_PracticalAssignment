@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "m5qecLxlKdrD+UEoOEA+FFGju/9EXpNSnuxoQNGmube/y0KAC/MADJefjVQ2lsH7pe6F1gajVEgYagPbGQ9KGA==",
+  "dgSpecHash": "CY5vxYhEeXwVfmskR4ACMHzNW/mlTaujjjsl1GERAnwQGgXOfjInD72cRPWG37gPNVxzKsNv+ujhY5uacB7etQ==",
   "success": true,
   "projectFilePath": "D:\\Documents\\DTU\\CSM\\CSM_PracticalAssignment\\PracticalAssignment\\PracticalAssignment.fsproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Noah Bro-Jørgensen\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512"
+    "C:\\Users\\Noah Bro-Jørgensen\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512",
+    "C:\\Users\\Noah Bro-Jørgensen\\.nuget\\packages\\fslexyacc\\10.0.0\\fslexyacc.10.0.0.nupkg.sha512",
+    "C:\\Users\\Noah Bro-Jørgensen\\.nuget\\packages\\fslexyacc.runtime\\10.0.0\\fslexyacc.runtime.10.0.0.nupkg.sha512"
   ],
   "logs": []
 }

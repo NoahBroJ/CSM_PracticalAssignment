@@ -1,6 +1,6 @@
 // Open the file that defines the type "expr" we shall use as AST
 %{
-open CalculatorTypesAST
+open TypesAST
 %}
 
 // Declare the tokens (terminal symbols)

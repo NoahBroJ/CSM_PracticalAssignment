@@ -2,12 +2,12 @@
 
 open FSharp.Text.Lexing
 open System
-#load "CalculatorTypesAST.fs"
-open CalculatorTypesAST
-#load "CalculatorParser.fs"
-open CalculatorParser
-#load "CalculatorLexer.fs"
-open CalculatorLexer
+#load "TypesAST.fs"
+open TypesAST
+#load "Parser.fs"
+open Parser
+#load "Lexer.fs"
+open Lexer
 
 // We define the evaluation function recursively, by induction on the structure
 // of arithmetic expressions (AST of type expr)
@@ -27,7 +27,7 @@ let parse input =
     // translate string into a buffer of characters
     let lexbuf = LexBuffer<char>.FromString input
     // translate the buffer into a stream of tokens and parse them
-    let res = CalculatorParser.start CalculatorLexer.tokenize lexbuf
+    let res = Parser.start Lexer.tokenize lexbuf
     // return the result of parsing (i.e. value of type "expr")
     res
 
