@@ -3,11 +3,11 @@ module Parser
 #nowarn "64";; // turn off warnings that type variables used in production annotations are instantiated to concrete type
 open FSharp.Text.Lexing
 open FSharp.Text.Parsing.ParseHelpers
-# 2 "Parser.fsp"
+# 2 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
 
 open TypesAST
 
-# 10 "Parser.fs"
+# 10 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
 // This type is the type of tokens accepted by the parser
 type token = 
   | TIMES
@@ -130,7 +130,7 @@ let _fsyacc_reductionSymbolCounts = [|1us; 2us; 1us; 3us; 3us; 1us; 3us; 3us; 1u
 let _fsyacc_productionToNonTerminalTable = [|0us; 1us; 2us; 2us; 2us; 3us; 3us; 3us; 4us; 4us; 5us; 5us; 5us; 6us; 6us; |]
 let _fsyacc_immediateActions = [|65535us; 49152us; 65535us; 16385us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 16389us; 65535us; 16390us; 65535us; 16391us; 65535us; 65535us; 16393us; 16394us; 65535us; 16395us; 65535us; 16396us; 16397us; 65535us; 16398us; |]
 let _fsyacc_reductions ()  =    [| 
-# 133 "Parser.fs"
+# 133 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
@@ -139,167 +139,167 @@ let _fsyacc_reductions ()  =    [|
                       raise (FSharp.Text.Parsing.Accept(Microsoft.FSharp.Core.Operators.box _1))
                    )
                  : '_startstart));
-# 142 "Parser.fs"
+# 142 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 36 "Parser.fsp"
+# 36 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                          _1 
                    )
-# 36 "Parser.fsp"
+# 36 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 153 "Parser.fs"
+# 153 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 47 "Parser.fsp"
+# 47 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                          _1 
                    )
-# 47 "Parser.fsp"
+# 47 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 164 "Parser.fs"
+# 164 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 48 "Parser.fsp"
+# 48 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                         PlusExpr(_1,_3) 
                    )
-# 48 "Parser.fsp"
+# 48 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 176 "Parser.fs"
+# 176 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 49 "Parser.fsp"
+# 49 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                          MinusExpr(_1,_3) 
                    )
-# 49 "Parser.fsp"
+# 49 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 188 "Parser.fs"
+# 188 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 52 "Parser.fsp"
+# 52 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                         _1 
                    )
-# 52 "Parser.fsp"
+# 52 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 199 "Parser.fs"
+# 199 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 53 "Parser.fsp"
+# 53 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                      TimesExpr(_1,_3) 
                    )
-# 53 "Parser.fsp"
+# 53 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 211 "Parser.fs"
+# 211 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 54 "Parser.fsp"
+# 54 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                    DivExpr(_1,_3) 
                    )
-# 54 "Parser.fsp"
+# 54 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 223 "Parser.fs"
+# 223 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 57 "Parser.fsp"
+# 57 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                         _1 
                    )
-# 57 "Parser.fsp"
+# 57 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 234 "Parser.fs"
+# 234 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 58 "Parser.fsp"
+# 58 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                    PowExpr(_1,_3) 
                    )
-# 58 "Parser.fsp"
+# 58 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 246 "Parser.fs"
+# 246 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 61 "Parser.fsp"
+# 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                        _1 
                    )
-# 61 "Parser.fsp"
+# 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 257 "Parser.fs"
+# 257 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 62 "Parser.fsp"
+# 62 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                      UPlusExpr(_2) 
                    )
-# 62 "Parser.fsp"
+# 62 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 268 "Parser.fs"
+# 268 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 63 "Parser.fsp"
+# 63 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                    UMinusExpr(_2) 
                    )
-# 63 "Parser.fsp"
+# 63 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 279 "Parser.fs"
+# 279 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : float)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 66 "Parser.fsp"
+# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                        Num(_1) 
                    )
-# 66 "Parser.fsp"
+# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
-# 290 "Parser.fs"
+# 290 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 67 "Parser.fsp"
+# 67 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                                    _2 
                    )
-# 67 "Parser.fsp"
+# 67 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                  : expr));
 |]
-# 302 "Parser.fs"
+# 302 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
 let tables () : FSharp.Text.Parsing.Tables<_> = 
   { reductions= _fsyacc_reductions ();
     endOfInputTag = _fsyacc_endOfInputTag;

@@ -1,4 +1,4 @@
-# 2 "Lexer.fsl"
+# 2 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
  
 module Lexer
 open FSharp.Text.Lexing
@@ -8,7 +8,7 @@ open Parser
 // Set the language to English such that 4.0 is parsed as 4 and not 40.
 System.Globalization.CultureInfo.CurrentCulture <- new System.Globalization.CultureInfo("en-US")
 
-# 11 "Lexer.fs"
+# 11 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -61,60 +61,60 @@ let rec _fslex_dummy () = _fslex_dummy()
 and tokenize  lexbuf =
   match _fslex_tables.Interpret(0,lexbuf) with
   | 0 -> ( 
-# 24 "Lexer.fsl"
+# 24 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  tokenize lexbuf 
-# 66 "Lexer.fs"
+# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 1 -> ( 
-# 25 "Lexer.fsl"
+# 25 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  lexbuf.EndPos <- lexbuf.EndPos.NextLine; tokenize lexbuf; 
-# 71 "Lexer.fs"
+# 71 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 2 -> ( 
-# 27 "Lexer.fsl"
+# 27 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  NUM(Double.Parse(LexBuffer<_>.LexemeString lexbuf)) 
-# 76 "Lexer.fs"
+# 76 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 3 -> ( 
-# 28 "Lexer.fsl"
+# 28 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  TIMES 
-# 81 "Lexer.fs"
+# 81 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 4 -> ( 
-# 29 "Lexer.fsl"
+# 29 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  DIV 
-# 86 "Lexer.fs"
+# 86 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 5 -> ( 
-# 30 "Lexer.fsl"
+# 30 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  PLUS 
-# 91 "Lexer.fs"
+# 91 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 6 -> ( 
-# 31 "Lexer.fsl"
+# 31 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  MINUS 
-# 96 "Lexer.fs"
+# 96 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 7 -> ( 
-# 32 "Lexer.fsl"
+# 32 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  POW 
-# 101 "Lexer.fs"
+# 101 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 8 -> ( 
-# 33 "Lexer.fsl"
+# 33 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  LPAR 
-# 106 "Lexer.fs"
+# 106 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 9 -> ( 
-# 34 "Lexer.fsl"
+# 34 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  RPAR 
-# 111 "Lexer.fs"
+# 111 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 10 -> ( 
-# 35 "Lexer.fsl"
+# 35 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  EOF 
-# 116 "Lexer.fs"
+# 116 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | _ -> failwith "tokenize"
 
-# 3000000 "Lexer.fs"
+# 3000000 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
