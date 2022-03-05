@@ -9,13 +9,9 @@ module TypesAST
 //			  | a = a | a != a | a > a | a >= a | a < a | a <= a | (b)
 
 
-// type Arr =
-//    | 
-
 type aexpr =
     | Num of int
     | Var of string
-    //| ArrayIndex of (Arr * aexpr)
     | ArrayIndex of (string * aexpr)
     | Plus of (aexpr * aexpr)
     | Minus of (aexpr * aexpr)

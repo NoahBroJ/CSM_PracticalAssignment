@@ -65,15 +65,7 @@ let rec compute =
         // We parse the input string
         let e = parse (Console.ReadLine())
         // and print the result of evaluating it *)
-        let program = "i:=1;
-        do i<n -> j:=i;
-                  do (j>0)&&(A[j-1]>A[j]) -> t:=A[j];
-                                             A[j]:=A[j-1];
-                                             A[j-1]:=t;
-                                             j:=j-1
-                  od;
-                  i:=i+1
-        od"
+        let program = "if false -> x := 1 fi"
         printfn "Result: %s" (evalC(parse program))
 
 // Start interacting with the user
