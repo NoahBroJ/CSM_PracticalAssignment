@@ -4,9 +4,8 @@ open TypesAST
 %}
 // Declare the tokens (terminal symbols)
 %token <int> NUM
-%token <string> VAR
-%token <bool> TRUE FALSE
-%token TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED LBRA RBRA AND OR NEG EQ GT LT EOF
+%token <string> VAR TRUE FALSE
+%token TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED LBRA RBRA AND OR NOT EQUAL GREATER LESS EOF
 // NOTE: the actual formats of these tokens are defined in the lexer file
 //       as regular expressions
 
@@ -21,12 +20,18 @@ open TypesAST
 %start start
 
 // We specify the return type of each of then non-terminal symbols
-%type <expr> start
-%type <expr> expression
-%type <expr> factor
-%type <expr> power
-%type <expr> unary
-%type <expr> num
+%type <command> start
+%type <aexpr> expression
+%type <aexpr> factor
+%type <aexpr> power
+%type <aexpr> unary
+%type <aexpr> num
+%type <bexpr> orbool
+%type <bexpr> andbool
+%type <bexpr> notbool
+%type <bexpr> basebool
+%type <guardedCommand> guardedcommand
+%type <command> command
 
 // Grammar productions
 %%
@@ -34,7 +39,7 @@ open TypesAST
 // The first production in "formal" notation is
 // start -> expression
 // here written:
-start: expression EOF             { $1 }
+start: command EOF             { $1 }
 
 // Note that we need to insert an End-Of-File (EOF)
 // The code annotation { $1 } specifies that parsing with this production
@@ -66,52 +71,49 @@ power:
 
 unary:
 	| num							{ $1 }
-	| PLUS unary		            { UPlus($2) }
 	| MINUS unary			        { UMinus($2) }
 
 num:
 	| NUM							{ Num($1) }
+	| VAR 							{ Var($1) }
 	| LPAR expression RPAR			{ $2 }
 
-bool:
+orbool:
 	| andbool						{ $1 }
-	| bool OR andbool				{ Or1($1, $3) }
-	| bool OR OR andbool			{ Or2($1, $4) }
+	| orbool OR andbool				{ Or1($1, $3) }
+	| orbool OR OR andbool			{ Or2($1, $4) }
 
 andbool:
 	| notbool						{ $1 }
 	| andbool AND notbool			{ And1($1, $3) }
 	| andbool AND AND notbool		{ And2($1, $4) }
 
-notbool
+notbool:
 	| basebool						{ $1 }
-	| NEG basebool					{ NEG($2) }
+	| NOT basebool					{ NEG($2) }
+		
+basebool:
+	| TRUE							{ T }
+	| FALSE							{ F }
+	| LPAR orbool RPAR				{ $2 }
+	| expression EQUAL expression		{ EQ($1, $3) }
+	| expression NOT EQUAL expression	{ NEQ($1, $4) }
+	| expression GREATER expression		{ GT($1, $3) }
+	| expression GREATER EQUAL expression	{ GEQ($1, $4) }
+	| expression LESS expression		{ LT($1, $3) }
+	| expression LESS EQUAL expression	{ LEQ($1, $4) }
 
-basebool
-	| TRUE							{ T($1) }
-	| FALSE							{ T($1) }
-	| LPAR bool RPAR				{ $2 }
-	| expression EQ expression		{ EQ($1, $3) }
-	| expression NEG EQ expression	{ NEQ($1, $4) }
-	| expression GT expression		{ GT($1, $3) }
-	| expression GT EQ expression	{ GEQ($1, $4) }
-	| expression LT expression		{ LT($1, $3) }
-	| expression LT EQ expression	{ LEQ($1, $4) }
-
-guardedcommand
-	| bool PRED command				{ Pred($1, $3) }
+guardedcommand:
+	| orbool PRED command				{ Pred($1, $3) }
 	| guardedcommand LBRA RBRA guardedcommand { Choice($1, $4) }
 
-command
-	| var ASSIGN expression			{ Assign($1, $3) }
-	| var LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
+command:
+	| num ASSIGN expression			{ Assign($1, $3) }
+	| num LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
 	| SKIP							{ Skip }
 	| command SEMICOLON command		{ SemiColon($1, $3) }
 	| IF guardedcommand FI			{ Iffi($2) }
 	| DO guardedcommand OD			{ Dood($2) }
-
-var
-	| VAR							{ Var($1) }
 
 
 // Again, the code annotation specifies the result of parsing

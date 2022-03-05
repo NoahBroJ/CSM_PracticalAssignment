@@ -8,8 +8,27 @@ type token =
   | POW
   | LPAR
   | RPAR
+  | ASSIGN
+  | SKIP
+  | SEMICOLON
+  | IF
+  | FI
+  | DO
+  | OD
+  | PRED
+  | LBRA
+  | RBRA
+  | AND
+  | OR
+  | NOT
+  | EQUAL
+  | GREATER
+  | LESS
   | EOF
-  | NUM of (float)
+  | VAR of (string)
+  | TRUE of (string)
+  | FALSE of (string)
+  | NUM of (int)
 type tokenId = 
     | TOKEN_TIMES
     | TOKEN_DIV
@@ -18,7 +37,26 @@ type tokenId =
     | TOKEN_POW
     | TOKEN_LPAR
     | TOKEN_RPAR
+    | TOKEN_ASSIGN
+    | TOKEN_SKIP
+    | TOKEN_SEMICOLON
+    | TOKEN_IF
+    | TOKEN_FI
+    | TOKEN_DO
+    | TOKEN_OD
+    | TOKEN_PRED
+    | TOKEN_LBRA
+    | TOKEN_RBRA
+    | TOKEN_AND
+    | TOKEN_OR
+    | TOKEN_NOT
+    | TOKEN_EQUAL
+    | TOKEN_GREATER
+    | TOKEN_LESS
     | TOKEN_EOF
+    | TOKEN_VAR
+    | TOKEN_TRUE
+    | TOKEN_FALSE
     | TOKEN_NUM
     | TOKEN_end_of_input
     | TOKEN_error
@@ -30,6 +68,12 @@ type nonTerminalId =
     | NONTERM_power
     | NONTERM_unary
     | NONTERM_num
+    | NONTERM_orbool
+    | NONTERM_andbool
+    | NONTERM_notbool
+    | NONTERM_basebool
+    | NONTERM_guardedcommand
+    | NONTERM_command
 /// This function maps tokens to integer indexes
 val tagOfToken: token -> int
 
@@ -41,4 +85,4 @@ val prodIdxToNonTerminal: int -> nonTerminalId
 
 /// This function gets the name of a token as a string
 val token_to_string: token -> string
-val start : (FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> FSharp.Text.Lexing.LexBuffer<'cty> -> (expr) 
+val start : (FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> FSharp.Text.Lexing.LexBuffer<'cty> -> (command) 

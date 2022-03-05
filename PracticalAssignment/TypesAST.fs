@@ -25,13 +25,13 @@ type aexpr =
     | Pow of (aexpr * aexpr)
 
 type bexpr = 
-    | T of (bool)
-    | F of (bool)
-    | And1 of (bool * bool)
-    | Or1 of (bool * bool)
-    | And2 of (bool * bool)
-    | Or2 of (bool * bool)
-    | NEG of (bool)
+    | T
+    | F 
+    | And1 of (bexpr * bexpr)
+    | Or1 of (bexpr * bexpr)
+    | And2 of (bexpr * bexpr)
+    | Or2 of (bexpr * bexpr)
+    | NEG of (bexpr)
     | EQ of (aexpr * aexpr)
     | NEQ of (aexpr * aexpr)
     | GT of (aexpr * aexpr)
@@ -43,8 +43,8 @@ type guardedCommand =
     | Pred of (bexpr * command)
     | Choice of (guardedCommand * guardedCommand)
 and command = 
-   | Assign of (string * aexpr)
-   | ArrAssign of (string * aexpr * aexpr)
+   | Assign of (aexpr * aexpr)
+   | ArrAssign of (aexpr * aexpr * aexpr)
    | Skip
    | SemiColon of (command * command)
    | Iffi of (guardedCommand)

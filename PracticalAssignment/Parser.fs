@@ -17,8 +17,27 @@ type token =
   | POW
   | LPAR
   | RPAR
+  | ASSIGN
+  | SKIP
+  | SEMICOLON
+  | IF
+  | FI
+  | DO
+  | OD
+  | PRED
+  | LBRA
+  | RBRA
+  | AND
+  | OR
+  | NOT
+  | EQUAL
+  | GREATER
+  | LESS
   | EOF
-  | NUM of (float)
+  | VAR of (string)
+  | TRUE of (string)
+  | FALSE of (string)
+  | NUM of (int)
 // This type is used to give symbolic names to token indexes, useful for error messages
 type tokenId = 
     | TOKEN_TIMES
@@ -28,7 +47,26 @@ type tokenId =
     | TOKEN_POW
     | TOKEN_LPAR
     | TOKEN_RPAR
+    | TOKEN_ASSIGN
+    | TOKEN_SKIP
+    | TOKEN_SEMICOLON
+    | TOKEN_IF
+    | TOKEN_FI
+    | TOKEN_DO
+    | TOKEN_OD
+    | TOKEN_PRED
+    | TOKEN_LBRA
+    | TOKEN_RBRA
+    | TOKEN_AND
+    | TOKEN_OR
+    | TOKEN_NOT
+    | TOKEN_EQUAL
+    | TOKEN_GREATER
+    | TOKEN_LESS
     | TOKEN_EOF
+    | TOKEN_VAR
+    | TOKEN_TRUE
+    | TOKEN_FALSE
     | TOKEN_NUM
     | TOKEN_end_of_input
     | TOKEN_error
@@ -41,6 +79,12 @@ type nonTerminalId =
     | NONTERM_power
     | NONTERM_unary
     | NONTERM_num
+    | NONTERM_orbool
+    | NONTERM_andbool
+    | NONTERM_notbool
+    | NONTERM_basebool
+    | NONTERM_guardedcommand
+    | NONTERM_command
 
 // This function maps tokens to integer indexes
 let tagOfToken (t:token) = 
@@ -52,8 +96,27 @@ let tagOfToken (t:token) =
   | POW  -> 4 
   | LPAR  -> 5 
   | RPAR  -> 6 
-  | EOF  -> 7 
-  | NUM _ -> 8 
+  | ASSIGN  -> 7 
+  | SKIP  -> 8 
+  | SEMICOLON  -> 9 
+  | IF  -> 10 
+  | FI  -> 11 
+  | DO  -> 12 
+  | OD  -> 13 
+  | PRED  -> 14 
+  | LBRA  -> 15 
+  | RBRA  -> 16 
+  | AND  -> 17 
+  | OR  -> 18 
+  | NOT  -> 19 
+  | EQUAL  -> 20 
+  | GREATER  -> 21 
+  | LESS  -> 22 
+  | EOF  -> 23 
+  | VAR _ -> 24 
+  | TRUE _ -> 25 
+  | FALSE _ -> 26 
+  | NUM _ -> 27 
 
 // This function maps integer indexes to symbolic token ids
 let tokenTagToTokenId (tokenIdx:int) = 
@@ -65,10 +128,29 @@ let tokenTagToTokenId (tokenIdx:int) =
   | 4 -> TOKEN_POW 
   | 5 -> TOKEN_LPAR 
   | 6 -> TOKEN_RPAR 
-  | 7 -> TOKEN_EOF 
-  | 8 -> TOKEN_NUM 
-  | 11 -> TOKEN_end_of_input
-  | 9 -> TOKEN_error
+  | 7 -> TOKEN_ASSIGN 
+  | 8 -> TOKEN_SKIP 
+  | 9 -> TOKEN_SEMICOLON 
+  | 10 -> TOKEN_IF 
+  | 11 -> TOKEN_FI 
+  | 12 -> TOKEN_DO 
+  | 13 -> TOKEN_OD 
+  | 14 -> TOKEN_PRED 
+  | 15 -> TOKEN_LBRA 
+  | 16 -> TOKEN_RBRA 
+  | 17 -> TOKEN_AND 
+  | 18 -> TOKEN_OR 
+  | 19 -> TOKEN_NOT 
+  | 20 -> TOKEN_EQUAL 
+  | 21 -> TOKEN_GREATER 
+  | 22 -> TOKEN_LESS 
+  | 23 -> TOKEN_EOF 
+  | 24 -> TOKEN_VAR 
+  | 25 -> TOKEN_TRUE 
+  | 26 -> TOKEN_FALSE 
+  | 27 -> TOKEN_NUM 
+  | 30 -> TOKEN_end_of_input
+  | 28 -> TOKEN_error
   | _ -> failwith "tokenTagToTokenId: bad token"
 
 /// This function maps production indexes returned in syntax errors to strings representing the non terminal that would be produced by that production
@@ -86,13 +168,38 @@ let prodIdxToNonTerminal (prodIdx:int) =
     | 9 -> NONTERM_power 
     | 10 -> NONTERM_unary 
     | 11 -> NONTERM_unary 
-    | 12 -> NONTERM_unary 
+    | 12 -> NONTERM_num 
     | 13 -> NONTERM_num 
     | 14 -> NONTERM_num 
+    | 15 -> NONTERM_orbool 
+    | 16 -> NONTERM_orbool 
+    | 17 -> NONTERM_orbool 
+    | 18 -> NONTERM_andbool 
+    | 19 -> NONTERM_andbool 
+    | 20 -> NONTERM_andbool 
+    | 21 -> NONTERM_notbool 
+    | 22 -> NONTERM_notbool 
+    | 23 -> NONTERM_basebool 
+    | 24 -> NONTERM_basebool 
+    | 25 -> NONTERM_basebool 
+    | 26 -> NONTERM_basebool 
+    | 27 -> NONTERM_basebool 
+    | 28 -> NONTERM_basebool 
+    | 29 -> NONTERM_basebool 
+    | 30 -> NONTERM_basebool 
+    | 31 -> NONTERM_basebool 
+    | 32 -> NONTERM_guardedcommand 
+    | 33 -> NONTERM_guardedcommand 
+    | 34 -> NONTERM_command 
+    | 35 -> NONTERM_command 
+    | 36 -> NONTERM_command 
+    | 37 -> NONTERM_command 
+    | 38 -> NONTERM_command 
+    | 39 -> NONTERM_command 
     | _ -> failwith "prodIdxToNonTerminal: bad production index"
 
-let _fsyacc_endOfInputTag = 11 
-let _fsyacc_tagOfErrorTerminal = 9
+let _fsyacc_endOfInputTag = 30 
+let _fsyacc_tagOfErrorTerminal = 28
 
 // This function gets the name of a token as a string
 let token_to_string (t:token) = 
@@ -104,7 +211,26 @@ let token_to_string (t:token) =
   | POW  -> "POW" 
   | LPAR  -> "LPAR" 
   | RPAR  -> "RPAR" 
+  | ASSIGN  -> "ASSIGN" 
+  | SKIP  -> "SKIP" 
+  | SEMICOLON  -> "SEMICOLON" 
+  | IF  -> "IF" 
+  | FI  -> "FI" 
+  | DO  -> "DO" 
+  | OD  -> "OD" 
+  | PRED  -> "PRED" 
+  | LBRA  -> "LBRA" 
+  | RBRA  -> "RBRA" 
+  | AND  -> "AND" 
+  | OR  -> "OR" 
+  | NOT  -> "NOT" 
+  | EQUAL  -> "EQUAL" 
+  | GREATER  -> "GREATER" 
+  | LESS  -> "LESS" 
   | EOF  -> "EOF" 
+  | VAR _ -> "VAR" 
+  | TRUE _ -> "TRUE" 
+  | FALSE _ -> "FALSE" 
   | NUM _ -> "NUM" 
 
 // This function gets the data carried by a token as an object
@@ -117,189 +243,498 @@ let _fsyacc_dataOfToken (t:token) =
   | POW  -> (null : System.Object) 
   | LPAR  -> (null : System.Object) 
   | RPAR  -> (null : System.Object) 
+  | ASSIGN  -> (null : System.Object) 
+  | SKIP  -> (null : System.Object) 
+  | SEMICOLON  -> (null : System.Object) 
+  | IF  -> (null : System.Object) 
+  | FI  -> (null : System.Object) 
+  | DO  -> (null : System.Object) 
+  | OD  -> (null : System.Object) 
+  | PRED  -> (null : System.Object) 
+  | LBRA  -> (null : System.Object) 
+  | RBRA  -> (null : System.Object) 
+  | AND  -> (null : System.Object) 
+  | OR  -> (null : System.Object) 
+  | NOT  -> (null : System.Object) 
+  | EQUAL  -> (null : System.Object) 
+  | GREATER  -> (null : System.Object) 
+  | LESS  -> (null : System.Object) 
   | EOF  -> (null : System.Object) 
+  | VAR _fsyacc_x -> Microsoft.FSharp.Core.Operators.box _fsyacc_x 
+  | TRUE _fsyacc_x -> Microsoft.FSharp.Core.Operators.box _fsyacc_x 
+  | FALSE _fsyacc_x -> Microsoft.FSharp.Core.Operators.box _fsyacc_x 
   | NUM _fsyacc_x -> Microsoft.FSharp.Core.Operators.box _fsyacc_x 
-let _fsyacc_gotos = [| 0us; 65535us; 1us; 65535us; 0us; 1us; 2us; 65535us; 0us; 2us; 24us; 5us; 4us; 65535us; 0us; 4us; 6us; 7us; 8us; 9us; 24us; 4us; 7us; 65535us; 0us; 10us; 6us; 10us; 8us; 10us; 11us; 12us; 13us; 14us; 16us; 17us; 24us; 10us; 9us; 65535us; 0us; 15us; 6us; 15us; 8us; 15us; 11us; 15us; 13us; 15us; 16us; 15us; 19us; 20us; 21us; 22us; 24us; 15us; 9us; 65535us; 0us; 18us; 6us; 18us; 8us; 18us; 11us; 18us; 13us; 18us; 16us; 18us; 19us; 18us; 21us; 18us; 24us; 18us; |]
-let _fsyacc_sparseGotoTableRowOffsets = [|0us; 1us; 3us; 6us; 11us; 19us; 29us; |]
-let _fsyacc_stateToProdIdxsTableElements = [| 1us; 0us; 1us; 0us; 3us; 1us; 3us; 4us; 1us; 1us; 3us; 2us; 6us; 7us; 3us; 3us; 4us; 14us; 1us; 3us; 3us; 3us; 6us; 7us; 1us; 4us; 3us; 4us; 6us; 7us; 1us; 5us; 1us; 6us; 1us; 6us; 1us; 7us; 1us; 7us; 2us; 8us; 9us; 1us; 9us; 1us; 9us; 1us; 10us; 1us; 11us; 1us; 11us; 1us; 12us; 1us; 12us; 1us; 13us; 1us; 14us; 1us; 14us; |]
-let _fsyacc_stateToProdIdxsTableRowOffsets = [|0us; 2us; 4us; 8us; 10us; 14us; 18us; 20us; 24us; 26us; 30us; 32us; 34us; 36us; 38us; 40us; 43us; 45us; 47us; 49us; 51us; 53us; 55us; 57us; 59us; 61us; |]
-let _fsyacc_action_rows = 26
-let _fsyacc_actionTableElements = [|4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 49152us; 3us; 32768us; 2us; 6us; 3us; 8us; 7us; 3us; 0us; 16385us; 2us; 16386us; 0us; 11us; 1us; 13us; 3us; 32768us; 2us; 6us; 3us; 8us; 6us; 25us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 2us; 16387us; 0us; 11us; 1us; 13us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 2us; 16388us; 0us; 11us; 1us; 13us; 0us; 16389us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16390us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16391us; 1us; 16392us; 4us; 16us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16393us; 0us; 16394us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16395us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16396us; 0us; 16397us; 4us; 32768us; 2us; 19us; 3us; 21us; 5us; 24us; 8us; 23us; 0us; 16398us; |]
-let _fsyacc_actionTableRowOffsets = [|0us; 5us; 6us; 10us; 11us; 14us; 18us; 23us; 26us; 31us; 34us; 35us; 40us; 41us; 46us; 47us; 49us; 54us; 55us; 56us; 61us; 62us; 67us; 68us; 69us; 74us; |]
-let _fsyacc_reductionSymbolCounts = [|1us; 2us; 1us; 3us; 3us; 1us; 3us; 3us; 1us; 3us; 1us; 2us; 2us; 1us; 3us; |]
-let _fsyacc_productionToNonTerminalTable = [|0us; 1us; 2us; 2us; 2us; 3us; 3us; 3us; 4us; 4us; 5us; 5us; 5us; 6us; 6us; |]
-let _fsyacc_immediateActions = [|65535us; 49152us; 65535us; 16385us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 16389us; 65535us; 16390us; 65535us; 16391us; 65535us; 65535us; 16393us; 16394us; 65535us; 16395us; 65535us; 16396us; 16397us; 65535us; 16398us; |]
+let _fsyacc_gotos = [| 0us; 65535us; 1us; 65535us; 0us; 1us; 19us; 65535us; 34us; 5us; 35us; 6us; 40us; 7us; 42us; 7us; 45us; 7us; 47us; 7us; 50us; 7us; 55us; 8us; 57us; 9us; 58us; 10us; 59us; 11us; 60us; 12us; 61us; 13us; 68us; 7us; 70us; 14us; 71us; 15us; 73us; 16us; 77us; 7us; 79us; 7us; 21us; 65535us; 17us; 18us; 19us; 20us; 34us; 4us; 35us; 4us; 40us; 4us; 42us; 4us; 45us; 4us; 47us; 4us; 50us; 4us; 55us; 4us; 57us; 4us; 58us; 4us; 59us; 4us; 60us; 4us; 61us; 4us; 68us; 4us; 70us; 4us; 71us; 4us; 73us; 4us; 77us; 4us; 79us; 4us; 24us; 65535us; 17us; 21us; 19us; 21us; 22us; 23us; 24us; 25us; 27us; 28us; 34us; 21us; 35us; 21us; 40us; 21us; 42us; 21us; 45us; 21us; 47us; 21us; 50us; 21us; 55us; 21us; 57us; 21us; 58us; 21us; 59us; 21us; 60us; 21us; 61us; 21us; 68us; 21us; 70us; 21us; 71us; 21us; 73us; 21us; 77us; 21us; 79us; 21us; 25us; 65535us; 17us; 26us; 19us; 26us; 22us; 26us; 24us; 26us; 27us; 26us; 30us; 31us; 34us; 26us; 35us; 26us; 40us; 26us; 42us; 26us; 45us; 26us; 47us; 26us; 50us; 26us; 55us; 26us; 57us; 26us; 58us; 26us; 59us; 26us; 60us; 26us; 61us; 26us; 68us; 26us; 70us; 26us; 71us; 26us; 73us; 26us; 77us; 26us; 79us; 26us; 28us; 65535us; 0us; 69us; 17us; 29us; 19us; 29us; 22us; 29us; 24us; 29us; 27us; 29us; 30us; 29us; 34us; 29us; 35us; 29us; 40us; 29us; 42us; 29us; 45us; 29us; 47us; 29us; 50us; 29us; 55us; 29us; 57us; 29us; 58us; 29us; 59us; 29us; 60us; 29us; 61us; 29us; 62us; 69us; 68us; 29us; 70us; 29us; 71us; 29us; 73us; 29us; 76us; 69us; 77us; 29us; 79us; 29us; 4us; 65535us; 35us; 38us; 68us; 39us; 77us; 39us; 79us; 39us; 6us; 65535us; 35us; 37us; 40us; 41us; 42us; 43us; 68us; 37us; 77us; 37us; 79us; 37us; 8us; 65535us; 35us; 44us; 40us; 44us; 42us; 44us; 45us; 46us; 47us; 48us; 68us; 44us; 77us; 44us; 79us; 44us; 9us; 65535us; 35us; 49us; 40us; 49us; 42us; 49us; 45us; 49us; 47us; 49us; 50us; 51us; 68us; 49us; 77us; 49us; 79us; 49us; 3us; 65535us; 68us; 64us; 77us; 65us; 79us; 66us; 3us; 65535us; 0us; 2us; 62us; 63us; 76us; 75us; |]
+let _fsyacc_sparseGotoTableRowOffsets = [|0us; 1us; 3us; 23us; 45us; 70us; 96us; 125us; 130us; 137us; 146us; 156us; 160us; |]
+let _fsyacc_stateToProdIdxsTableElements = [| 1us; 0us; 1us; 0us; 2us; 1us; 37us; 1us; 1us; 3us; 2us; 6us; 7us; 3us; 3us; 4us; 14us; 9us; 3us; 4us; 14us; 26us; 27us; 28us; 29us; 30us; 31us; 8us; 3us; 4us; 26us; 27us; 28us; 29us; 30us; 31us; 3us; 3us; 4us; 26us; 3us; 3us; 4us; 27us; 3us; 3us; 4us; 28us; 3us; 3us; 4us; 29us; 3us; 3us; 4us; 30us; 3us; 3us; 4us; 31us; 3us; 3us; 4us; 34us; 3us; 3us; 4us; 35us; 3us; 3us; 4us; 35us; 1us; 3us; 3us; 3us; 6us; 7us; 1us; 4us; 3us; 4us; 6us; 7us; 1us; 5us; 1us; 6us; 1us; 6us; 1us; 7us; 1us; 7us; 2us; 8us; 9us; 1us; 9us; 1us; 9us; 1us; 10us; 1us; 11us; 1us; 11us; 1us; 12us; 1us; 13us; 1us; 14us; 2us; 14us; 25us; 1us; 14us; 3us; 15us; 19us; 20us; 3us; 16us; 17us; 25us; 3us; 16us; 17us; 32us; 2us; 16us; 17us; 3us; 16us; 19us; 20us; 1us; 17us; 3us; 17us; 19us; 20us; 1us; 18us; 2us; 19us; 20us; 1us; 19us; 1us; 20us; 1us; 20us; 1us; 21us; 1us; 22us; 1us; 22us; 1us; 23us; 1us; 24us; 1us; 25us; 1us; 26us; 1us; 27us; 1us; 27us; 2us; 28us; 29us; 1us; 29us; 2us; 30us; 31us; 1us; 31us; 1us; 32us; 2us; 32us; 37us; 2us; 33us; 33us; 2us; 33us; 38us; 2us; 33us; 39us; 1us; 33us; 1us; 33us; 2us; 34us; 35us; 1us; 34us; 1us; 35us; 1us; 35us; 1us; 35us; 1us; 36us; 2us; 37us; 37us; 1us; 37us; 1us; 38us; 1us; 38us; 1us; 39us; 1us; 39us; |]
+let _fsyacc_stateToProdIdxsTableRowOffsets = [|0us; 2us; 4us; 7us; 9us; 13us; 17us; 27us; 36us; 40us; 44us; 48us; 52us; 56us; 60us; 64us; 68us; 72us; 74us; 78us; 80us; 84us; 86us; 88us; 90us; 92us; 94us; 97us; 99us; 101us; 103us; 105us; 107us; 109us; 111us; 113us; 116us; 118us; 122us; 126us; 130us; 133us; 137us; 139us; 143us; 145us; 148us; 150us; 152us; 154us; 156us; 158us; 160us; 162us; 164us; 166us; 168us; 170us; 172us; 175us; 177us; 180us; 182us; 184us; 187us; 190us; 193us; 196us; 198us; 200us; 203us; 205us; 207us; 209us; 211us; 213us; 216us; 218us; 220us; 222us; 224us; |]
+let _fsyacc_action_rows = 81
+let _fsyacc_actionTableElements = [|6us; 32768us; 5us; 34us; 8us; 74us; 10us; 77us; 12us; 79us; 24us; 33us; 27us; 32us; 0us; 49152us; 2us; 32768us; 9us; 76us; 23us; 3us; 0us; 16385us; 2us; 16386us; 0us; 22us; 1us; 24us; 3us; 32768us; 2us; 17us; 3us; 19us; 6us; 36us; 7us; 32768us; 2us; 17us; 3us; 19us; 6us; 36us; 19us; 56us; 20us; 55us; 21us; 58us; 22us; 60us; 6us; 32768us; 2us; 17us; 3us; 19us; 19us; 56us; 20us; 55us; 21us; 58us; 22us; 60us; 2us; 16410us; 2us; 17us; 3us; 19us; 2us; 16411us; 2us; 17us; 3us; 19us; 2us; 16412us; 2us; 17us; 3us; 19us; 2us; 16413us; 2us; 17us; 3us; 19us; 2us; 16414us; 2us; 17us; 3us; 19us; 2us; 16415us; 2us; 17us; 3us; 19us; 2us; 16418us; 2us; 17us; 3us; 19us; 3us; 32768us; 2us; 17us; 3us; 19us; 16us; 72us; 2us; 16419us; 2us; 17us; 3us; 19us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 2us; 16387us; 0us; 22us; 1us; 24us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 2us; 16388us; 0us; 22us; 1us; 24us; 0us; 16389us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 0us; 16390us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 0us; 16391us; 1us; 16392us; 4us; 27us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 0us; 16393us; 0us; 16394us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 0us; 16395us; 0us; 16396us; 0us; 16397us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16398us; 1us; 16399us; 17us; 45us; 2us; 32768us; 6us; 54us; 18us; 40us; 2us; 32768us; 14us; 62us; 18us; 40us; 8us; 32768us; 3us; 30us; 5us; 35us; 18us; 42us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 1us; 16400us; 17us; 45us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 1us; 16401us; 17us; 45us; 0us; 16402us; 8us; 32768us; 3us; 30us; 5us; 35us; 17us; 47us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16403us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16404us; 0us; 16405us; 6us; 32768us; 3us; 30us; 5us; 35us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16406us; 0us; 16407us; 0us; 16408us; 0us; 16409us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 1us; 32768us; 20us; 57us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 5us; 32768us; 3us; 30us; 5us; 34us; 20us; 59us; 24us; 33us; 27us; 32us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 5us; 32768us; 3us; 30us; 5us; 34us; 20us; 61us; 24us; 33us; 27us; 32us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 6us; 32768us; 5us; 34us; 8us; 74us; 10us; 77us; 12us; 79us; 24us; 33us; 27us; 32us; 1us; 16416us; 9us; 76us; 1us; 16417us; 15us; 67us; 2us; 32768us; 11us; 78us; 15us; 67us; 2us; 32768us; 13us; 80us; 15us; 67us; 1us; 32768us; 16us; 68us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 2us; 32768us; 7us; 70us; 15us; 71us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 1us; 32768us; 7us; 73us; 4us; 32768us; 3us; 30us; 5us; 34us; 24us; 33us; 27us; 32us; 0us; 16420us; 1us; 16421us; 9us; 76us; 6us; 32768us; 5us; 34us; 8us; 74us; 10us; 77us; 12us; 79us; 24us; 33us; 27us; 32us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16422us; 7us; 32768us; 3us; 30us; 5us; 35us; 19us; 50us; 24us; 33us; 25us; 52us; 26us; 53us; 27us; 32us; 0us; 16423us; |]
+let _fsyacc_actionTableRowOffsets = [|0us; 7us; 8us; 11us; 12us; 15us; 19us; 27us; 34us; 37us; 40us; 43us; 46us; 49us; 52us; 55us; 59us; 62us; 67us; 70us; 75us; 78us; 79us; 84us; 85us; 90us; 91us; 93us; 98us; 99us; 100us; 105us; 106us; 107us; 108us; 113us; 121us; 122us; 124us; 127us; 130us; 139us; 141us; 149us; 151us; 152us; 161us; 162us; 170us; 171us; 172us; 179us; 180us; 181us; 182us; 183us; 188us; 190us; 195us; 201us; 206us; 212us; 217us; 224us; 226us; 228us; 231us; 234us; 236us; 244us; 247us; 252us; 257us; 259us; 264us; 265us; 267us; 274us; 282us; 283us; 291us; |]
+let _fsyacc_reductionSymbolCounts = [|1us; 2us; 1us; 3us; 3us; 1us; 3us; 3us; 1us; 3us; 1us; 2us; 1us; 1us; 3us; 1us; 3us; 4us; 1us; 3us; 4us; 1us; 2us; 1us; 1us; 3us; 3us; 4us; 3us; 4us; 3us; 4us; 3us; 4us; 3us; 6us; 1us; 3us; 3us; 3us; |]
+let _fsyacc_productionToNonTerminalTable = [|0us; 1us; 2us; 2us; 2us; 3us; 3us; 3us; 4us; 4us; 5us; 5us; 6us; 6us; 6us; 7us; 7us; 7us; 8us; 8us; 8us; 9us; 9us; 10us; 10us; 10us; 10us; 10us; 10us; 10us; 10us; 10us; 11us; 11us; 12us; 12us; 12us; 12us; 12us; 12us; |]
+let _fsyacc_immediateActions = [|65535us; 49152us; 65535us; 16385us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 16389us; 65535us; 16390us; 65535us; 16391us; 65535us; 65535us; 16393us; 16394us; 65535us; 16395us; 16396us; 16397us; 65535us; 65535us; 16398us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 16402us; 65535us; 16403us; 65535us; 16404us; 16405us; 65535us; 16406us; 16407us; 16408us; 16409us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 65535us; 16420us; 65535us; 65535us; 65535us; 16422us; 65535us; 16423us; |]
 let _fsyacc_reductions ()  =    [| 
-# 133 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 278 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : command)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
                       raise (FSharp.Text.Parsing.Accept(Microsoft.FSharp.Core.Operators.box _1))
                    )
                  : '_startstart));
-# 142 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 287 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : command)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 36 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                         _1 
+# 42 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                      _1 
                    )
-# 36 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 153 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 42 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 298 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 47 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                         _1 
+# 59 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                      _1 
                    )
-# 47 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 164 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 59 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 309 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 48 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                        PlusExpr(_1,_3) 
+# 60 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                     Plus(_1,_3) 
                    )
-# 48 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 176 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 60 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 321 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 49 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                         MinusExpr(_1,_3) 
-                   )
-# 49 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 188 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 52 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                        _1 
-                   )
-# 52 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 199 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 53 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                     TimesExpr(_1,_3) 
-                   )
-# 53 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 211 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 54 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                   DivExpr(_1,_3) 
-                   )
-# 54 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 223 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 57 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                        _1 
-                   )
-# 57 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 234 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
-            Microsoft.FSharp.Core.Operators.box
-                (
-                   (
-# 58 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                   PowExpr(_1,_3) 
-                   )
-# 58 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 246 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
-        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
 # 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                      Minus(_1,_3) 
+                   )
+# 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 333 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 64 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                      _1 
+                   )
+# 64 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 344 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 65 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                  Times(_1,_3) 
+                   )
+# 65 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 356 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                              Div(_1,_3) 
+                   )
+# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 368 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 69 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                      _1 
+                   )
+# 69 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 379 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 70 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                Pow(_1,_3) 
+                   )
+# 70 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 391 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 73 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                    _1 
+                   )
+# 73 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 402 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 74 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                UMinus(_2) 
+                   )
+# 74 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 413 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : int)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 77 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                    Num(_1) 
+                   )
+# 77 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 424 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : string)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 78 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                     Var(_1) 
+                   )
+# 78 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 435 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 79 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                 _2 
+                   )
+# 79 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : aexpr));
+# 446 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 82 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
                                        _1 
                    )
-# 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 257 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 82 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 457 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 62 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                     UPlusExpr(_2) 
+# 83 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                               Or1(_1, _3) 
                    )
-# 62 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 268 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 83 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 469 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 63 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                   UMinusExpr(_2) 
+# 84 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                 Or2(_1, _4) 
                    )
-# 63 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 279 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 84 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 481 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : float)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                       Num(_1) 
+# 87 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                       _1 
                    )
-# 66 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
-# 290 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 87 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 492 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
-            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : expr)) in
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 67 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                                                   _2 
+# 88 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                And1(_1, _3) 
                    )
-# 67 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
-                 : expr));
+# 88 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 504 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 89 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                   And2(_1, _4) 
+                   )
+# 89 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 516 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 92 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                        _1 
+                   )
+# 92 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 527 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 93 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                           NEG(_2) 
+                   )
+# 93 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 538 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : string)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 96 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                     T 
+                   )
+# 96 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 549 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : string)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 97 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                      F 
+                   )
+# 97 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 560 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 98 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                              _2 
+                   )
+# 98 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 571 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 99 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                       EQ(_1, _3) 
+                   )
+# 99 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 583 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 100 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                          NEQ(_1, _4) 
+                   )
+# 100 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 595 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 101 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                         GT(_1, _3) 
+                   )
+# 101 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 607 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 102 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                              GEQ(_1, _4) 
+                   )
+# 102 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 619 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 103 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                      LT(_1, _3) 
+                   )
+# 103 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 631 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 104 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                           LEQ(_1, _4) 
+                   )
+# 104 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : bexpr));
+# 643 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : bexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : command)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 107 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                 Pred(_1, _3) 
+                   )
+# 107 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : guardedCommand));
+# 655 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : guardedCommand)) in
+            let _4 = (let data = parseState.GetInput(4) in (Microsoft.FSharp.Core.Operators.unbox data : guardedCommand)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 108 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                                  Choice(_1, _4) 
+                   )
+# 108 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : guardedCommand));
+# 667 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 111 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                  Assign(_1, _3) 
+                   )
+# 111 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 679 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            let _6 = (let data = parseState.GetInput(6) in (Microsoft.FSharp.Core.Operators.unbox data : aexpr)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 112 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                                     ArrAssign(_1, _3, _6) 
+                   )
+# 112 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 692 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 113 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                     Skip 
+                   )
+# 113 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 702 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _1 = (let data = parseState.GetInput(1) in (Microsoft.FSharp.Core.Operators.unbox data : command)) in
+            let _3 = (let data = parseState.GetInput(3) in (Microsoft.FSharp.Core.Operators.unbox data : command)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 114 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                     SemiColon(_1, _3) 
+                   )
+# 114 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 714 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : guardedCommand)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 115 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                 Iffi(_2) 
+                   )
+# 115 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
+# 725 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+        (fun (parseState : FSharp.Text.Parsing.IParseState) ->
+            let _2 = (let data = parseState.GetInput(2) in (Microsoft.FSharp.Core.Operators.unbox data : guardedCommand)) in
+            Microsoft.FSharp.Core.Operators.box
+                (
+                   (
+# 116 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                                                 Dood(_2) 
+                   )
+# 116 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Parser.fsp"
+                 : command));
 |]
-# 302 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
+# 737 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Parser.fs"
 let tables () : FSharp.Text.Parsing.Tables<_> = 
   { reductions= _fsyacc_reductions ();
     endOfInputTag = _fsyacc_endOfInputTag;
@@ -318,8 +753,8 @@ let tables () : FSharp.Text.Parsing.Tables<_> =
                               match parse_error_rich with 
                               | Some f -> f ctxt
                               | None -> parse_error ctxt.Message);
-    numTerminals = 12;
+    numTerminals = 31;
     productionToNonTerminalTable = _fsyacc_productionToNonTerminalTable  }
 let engine lexer lexbuf startState = (tables ()).Interpret(lexer, lexbuf, startState)
-let start lexer lexbuf : expr =
+let start lexer lexbuf : command =
     Microsoft.FSharp.Core.Operators.unbox ((tables ()).Interpret(lexer, lexbuf, 0))
