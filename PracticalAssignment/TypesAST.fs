@@ -12,6 +12,7 @@ module TypesAST
 type aexpr =
     | Num of int
     | Var of string
+    | APar of aexpr
     | ArrayIndex of (string * aexpr)
     | Plus of (aexpr * aexpr)
     | Minus of (aexpr * aexpr)
@@ -23,6 +24,7 @@ type aexpr =
 type bexpr = 
     | T
     | F 
+    | BPar of bexpr
     | And1 of (bexpr * bexpr)
     | Or1 of (bexpr * bexpr)
     | And2 of (bexpr * bexpr)

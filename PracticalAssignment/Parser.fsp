@@ -32,6 +32,7 @@ open TypesAST
 %type <bexpr> basebool
 %type <guardedCommand> guardedcommand
 %type <command> command
+%type <aexpr> var
 
 // Grammar productions
 %%
@@ -75,9 +76,8 @@ unary:
 
 num:
 	| NUM							{ Num($1) }
-	| VAR 							{ Var($1) }
-	| VAR LBRA expression RBRA		{ ArrayIndex($1, $3) }
-	| LPAR expression RPAR			{ $2 }
+	| LPAR expression RPAR			{ APar($2) }
+	| var							{ $1 }
 
 orbool:
 	| andbool						{ $1 }
@@ -96,7 +96,7 @@ notbool:
 basebool:
 	| TRUE							{ T }
 	| FALSE							{ F }
-	| LPAR orbool RPAR				{ $2 }
+	| LPAR orbool RPAR				{ BPar($2) }
 	| expression EQUAL expression		{ EQ($1, $3) }
 	| expression NOT EQUAL expression	{ NEQ($1, $4) }
 	| expression GREATER expression		{ GT($1, $3) }
@@ -109,13 +109,16 @@ guardedcommand:
 	| guardedcommand LBRA RBRA guardedcommand { Choice($1, $4) }
 
 command:
-	| num ASSIGN expression			{ Assign($1, $3) }
-	| num LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
+	| var ASSIGN expression			{ Assign($1, $3) }
+	| var LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
 	| SKIP							{ Skip }
 	| command SEMICOLON command		{ SemiColon($1, $3) }
 	| IF guardedcommand FI			{ Iffi($2) }
 	| DO guardedcommand OD			{ Dood($2) }
 
+var:
+	| VAR 							{ Var($1) }
+	| VAR LBRA expression RBRA		{ ArrayIndex($1, $3) }
 
 // Again, the code annotation specifies the result of parsing
 // For example { TimesExpr($1,$3) } specifies that parsing with the production
