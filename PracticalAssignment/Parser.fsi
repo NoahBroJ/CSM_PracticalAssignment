@@ -73,6 +73,7 @@ type nonTerminalId =
     | NONTERM_notbool
     | NONTERM_basebool
     | NONTERM_guardedcommand
+    | NONTERM_choicecommand
     | NONTERM_command
     | NONTERM_var
 /// This function maps tokens to integer indexes

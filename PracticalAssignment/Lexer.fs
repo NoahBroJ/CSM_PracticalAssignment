@@ -1,4 +1,4 @@
-# 2 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 2 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
  
 module Lexer
 open FSharp.Text.Lexing
@@ -8,7 +8,7 @@ open Parser
 // Set the language to English such that 4.0 is parsed as 4 and not 40.
 System.Globalization.CultureInfo.CurrentCulture <- new System.Globalization.CultureInfo("en-US")
 
-# 11 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 11 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -143,155 +143,155 @@ let rec _fslex_dummy () = _fslex_dummy()
 and tokenize  lexbuf =
   match _fslex_tables.Interpret(0,lexbuf) with
   | 0 -> ( 
-# 33 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 33 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  tokenize lexbuf 
-# 148 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 148 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 1 -> ( 
-# 34 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 34 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  lexbuf.EndPos <- lexbuf.EndPos.NextLine; tokenize lexbuf; 
-# 153 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 153 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 2 -> ( 
-# 36 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 36 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  NUM(Int32.Parse(LexBuffer<_>.LexemeString lexbuf)) 
-# 158 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 158 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 3 -> ( 
-# 37 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 37 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  TIMES 
-# 163 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 163 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 4 -> ( 
-# 38 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 38 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  DIV 
-# 168 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 168 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 5 -> ( 
-# 39 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 39 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  PLUS 
-# 173 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 173 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 6 -> ( 
-# 40 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 40 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  MINUS 
-# 178 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 178 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 7 -> ( 
-# 41 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 41 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  POW 
-# 183 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 183 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 8 -> ( 
-# 42 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 42 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  LPAR 
-# 188 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 188 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 9 -> ( 
-# 43 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 43 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  RPAR 
-# 193 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 193 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 10 -> ( 
-# 44 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 44 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                           ASSIGN 
-# 198 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 198 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 11 -> ( 
-# 45 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 45 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                            SKIP 
-# 203 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 203 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 12 -> ( 
-# 46 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 46 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          SEMICOLON 
-# 208 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 208 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 13 -> ( 
-# 47 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 47 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                         IF 
-# 213 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 213 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 14 -> ( 
-# 48 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 48 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                         FI 
-# 218 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 218 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 15 -> ( 
-# 49 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 49 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                         DO 
-# 223 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 223 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 16 -> ( 
-# 50 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 50 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                         OD 
-# 228 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 228 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 17 -> ( 
-# 51 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 51 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                           PRED 
-# 233 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 233 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 18 -> ( 
-# 52 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 52 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          LBRA 
-# 238 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 238 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 19 -> ( 
-# 53 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 53 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          RBRA 
-# 243 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 243 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 20 -> ( 
-# 54 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 54 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                            TRUE 
-# 248 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 248 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 21 -> ( 
-# 55 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 55 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                             FALSE 
-# 253 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 253 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 22 -> ( 
-# 56 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 56 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          VAR(LexBuffer<_>.LexemeString lexbuf) 
-# 258 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 258 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 23 -> ( 
-# 57 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 57 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          AND 
-# 263 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 263 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 24 -> ( 
-# 58 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 58 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          OR 
-# 268 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 268 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 25 -> ( 
-# 59 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 59 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          NOT 
-# 273 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 273 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 26 -> ( 
-# 60 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 60 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          EQUAL 
-# 278 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 278 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 27 -> ( 
-# 61 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 61 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          GREATER 
-# 283 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 283 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 28 -> ( 
-# 62 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 62 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                          LESS 
-# 288 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 288 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | 29 -> ( 
-# 63 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
+# 63 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\\PracticalAssignment\Lexer.fsl"
                                  EOF 
-# 293 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 293 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
           )
   | _ -> failwith "tokenize"
 
-# 3000000 "C:\Users\Kaspe\Documents\GitHub\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
+# 3000000 "D:\Documents\DTU\CSM\CSM_PracticalAssignment\PracticalAssignment\Lexer.fs"
