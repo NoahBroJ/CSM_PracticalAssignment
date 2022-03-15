@@ -59,6 +59,7 @@ let rec tab = function
 let mutable fresh = 1
 let mutable d = F
 let mutable det = false
+(*
 
 let rec compileC e qs qe =
     match e with
@@ -125,7 +126,8 @@ and dcompileOther gc =
     match gc with
     | Pred(x,y) -> compileB(NEG(d))
     | Choice(x,y) -> dcompileOther x + "&&" + dcompileOther y
-    
+*)
+
 let edgeMap = Map.empty<string, ((Map<string, int32> * Map<string, int[]>) -> (string * Map<string, int32> * Map<string, int[]>))>
 
 let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
@@ -226,9 +228,11 @@ od"
         
 //        printfn "Result: \n%s" (evalC(parse program) 0)
 
+(*
 let rec compile determinstic =
     det <- determinstic
     printfn "Result: \n%s" (compileC(parse program) "qs" "qe")
+*)
 
 let rec interpret deterministic =
     det <- deterministic
