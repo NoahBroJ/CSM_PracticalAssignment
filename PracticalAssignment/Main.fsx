@@ -62,8 +62,8 @@ let mutable det = false
 
 let rec compileC e qs qe =
     match e with
-    | Assign(x,y) -> qs + " -> " + qe + " [label = \"" + compileA(x) + ":=" + compileA(y) + "\"];\n"
-    | ArrAssign(x,y,z) -> qs + " -> " + qe + " [label = \"" + compileA(x) + "[" + compileA(y) + "]" + "=" + compileA(z) + "\"];\n"
+    | Assign(x,y) -> qs + " -> " + qe + " [label = \"" + x + ":=" + compileA(y) + "\"];\n"
+    | ArrAssign(x,y,z) -> qs + " -> " + qe + " [label = \"" + x + "[" + compileA(y) + "]" + "=" + compileA(z) + "\"];\n"
     | Skip ->  qs + " -> " + qe + " [label = \"" + "Skip" + "\"];\n"
     | SemiColon(x,y) -> let qi = "q" + string fresh
                         fresh <- fresh + 1
