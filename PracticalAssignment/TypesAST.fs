@@ -41,9 +41,9 @@ type guardedCommand =
     | Pred of (bexpr * command)
     | Choice of (guardedCommand * guardedCommand)
 and command = 
-   | Assign of (aexpr * aexpr)
-   | ArrAssign of (aexpr * aexpr * aexpr)
-   | Skip
-   | SemiColon of (command * command)
-   | Iffi of (guardedCommand)
-   | Dood of (guardedCommand)
+    | Assign of (string * aexpr)
+    | ArrAssign of (string * aexpr * aexpr)
+    | Skip
+    | SemiColon of (command * command)
+    | Iffi of (guardedCommand)
+    | Dood of (guardedCommand)
