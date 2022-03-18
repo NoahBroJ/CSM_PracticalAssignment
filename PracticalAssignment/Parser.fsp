@@ -5,7 +5,7 @@ open TypesAST
 // Declare the tokens (terminal symbols)
 %token <int> NUM
 %token <string> VAR
-%token TRUE FALSE TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED LBRA RBRA AND OR NOT EQUAL GREATER LESS EOF
+%token TRUE FALSE TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED CHOICE LBRA RBRA AND OR NOT EQUAL GREATER LESS EOF
 // NOTE: the actual formats of these tokens are defined in the lexer file
 //       as regular expressions
 
@@ -111,7 +111,7 @@ guardedcommand:
 	| orbool PRED command				{ Pred($1, $3) }
 
 choicecommand:
-	| guardedcommand LBRA RBRA guardedcommand { Choice($1, $4) }
+	| guardedcommand CHOICE guardedcommand		{ Choice($1, $3) }
 
 command:
 	| writevar ASSIGN expression			{ Assign($1, $3) }
