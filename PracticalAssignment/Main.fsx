@@ -58,12 +58,13 @@ let rec tab = function
 
 let mutable fresh = 1
 let mutable d = F
-let mutable det = true
+let mutable det = false
+(*
 
 let rec compileC e qs qe =
     match e with
-    | Assign(x,y) -> qs + " -> " + qe + " [label = \"" + compileA(x) + ":=" + compileA(y) + "\"];\n"
-    | ArrAssign(x,y,z) -> qs + " -> " + qe + " [label = \"" + compileA(x) + "[" + compileA(y) + "]" + "=" + compileA(z) + "\"];\n"
+    | Assign(x,y) -> qs + " -> " + qe + " [label = \"" + x + ":=" + compileA(y) + "\"];\n"
+    | ArrAssign(x,y,z) -> qs + " -> " + qe + " [label = \"" + x + "[" + compileA(y) + "]" + "=" + compileA(z) + "\"];\n"
     | Skip ->  qs + " -> " + qe + " [label = \"" + "Skip" + "\"];\n"
     | SemiColon(x,y) -> let qi = "q" + string fresh
                         fresh <- fresh + 1
@@ -125,6 +126,92 @@ and dcompileOther gc =
     match gc with
     | Pred(x,y) -> compileB(NEG(d))
     | Choice(x,y) -> dcompileOther x + "&&" + dcompileOther y
+*)
+
+let edgeMap = Map.empty<string, ((Map<string, int32> * Map<string, int[]>) -> (string * Map<string, int32> * Map<string, int[]>))>
+
+let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
+
+let stupidAnd b1 b2 = if b1 then b2 else if b2 then false else false 
+
+let rec insertAt x ys n =
+    match n, ys with
+    | 0, _::ys -> x::ys
+    | n, y::ys -> y::(insertAt x ys (n - 1))
+    | _, [] -> raise (System.ArgumentException("The fuck you doin"))
+
+let rec interpretC e qs qe edgeMap =
+    match e with
+    | Assign(x,y) -> Map.add qs (fun (v, a) -> (qe, (Map.add x (interpretA y v a) v), a)) edgeMap
+    | ArrAssign(x,y,z) -> Map.add qs (fun (v, a) -> (qe, v, (Map.add x (insertAt (interpretA z v a) (Map.find x a)(interpretA y v a)) a))) edgeMap
+    | Skip ->  Map.add qs (fun (v,a) -> (qe, v, a)) edgeMap
+    | SemiColon(x,y) -> let qi = "q" + string fresh
+                        fresh <- fresh + 1
+                        let tempMap = interpretC x qs qi edgeMap
+                        interpretC y qi qe tempMap
+    | Iffi(x) -> interpretGC x qs qe edgeMap
+    | Dood(x) -> let tempMap = (interpretGC x qs qs edgeMap)
+                 let extraEdge = fun (v,a) -> if (interpretB (interpretOther x) v a) then (qe, v, a) else ((Map.find qs tempMap) (v,a))
+                 Map.add qs extraEdge tempMap
+and interpretA e varMap arrMap =
+    match e with
+    | Num(x) -> x
+    | Var(x) -> Map.find x varMap
+    | APar(x) -> interpretA x varMap arrMap
+    | ArrayIndex(x,y) -> List.item (interpretA y varMap arrMap) (Map.find x arrMap)
+    | Times(x,y) -> (interpretA x varMap arrMap) * (interpretA y varMap arrMap)
+    | Div(x,y) -> (interpretA x varMap arrMap) / (interpretA y varMap arrMap)
+    | Plus(x,y) -> (interpretA x varMap arrMap) + (interpretA y varMap arrMap)
+    | Minus(x,y) -> (interpretA x varMap arrMap) - (interpretA y varMap arrMap)
+    | Pow(x,y) -> pown (interpretA x varMap arrMap) (interpretA y varMap arrMap)
+    | UMinus(x) -> 0 - (interpretA x varMap arrMap)
+and interpretB e varMap arrMap = 
+    match e with
+    | T -> true
+    | F -> false
+    | BPar(x) -> interpretB x varMap arrMap
+    | And1(x,y) -> stupidAnd (interpretB x varMap arrMap) (interpretB y varMap arrMap)
+    | Or1(x,y) -> stupidOr (interpretB x varMap arrMap) (interpretB y varMap arrMap)
+    | And2(x,y) -> (interpretB x varMap arrMap) && (interpretB y varMap arrMap)
+    | Or2(x,y) -> (interpretB x varMap arrMap) || (interpretB y varMap arrMap)
+    | NEG(x) -> not (interpretB x varMap arrMap)
+    | EQ(x,y) -> (interpretA x varMap arrMap) = (interpretA y varMap arrMap)
+    | NEQ(x,y) -> (interpretA x varMap arrMap) <> (interpretA y varMap arrMap)
+    | GT(x,y) -> (interpretA x varMap arrMap) > (interpretA y varMap arrMap)
+    | GEQ(x,y) -> (interpretA x varMap arrMap) >= (interpretA y varMap arrMap)
+    | LT(x,y) -> (interpretA x varMap arrMap) < (interpretA y varMap arrMap)
+    | LEQ(x,y) -> (interpretA x varMap arrMap) <= (interpretA y varMap arrMap)
+and interpretGC e qs qe edgeMap =
+    match e with
+    | Pred(x,y) -> let qi = "q" + string fresh
+                   fresh <- fresh + 1
+                   if (Map.containsKey qs edgeMap) then
+                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else (Map.find qs edgeMap) (v, a)) edgeMap
+                       interpretC y qi qe tempMap
+                   else
+                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else ("stuck", v, a)) edgeMap
+                       interpretC y qi qe tempMap
+    | Choice(x,y) -> let tempMap = interpretGC x qs qe edgeMap 
+                     interpretGC y qs qe tempMap
+//and dinterpretGC e qs qe =
+//    match e with
+//    | Pred(x,y) -> let qi = "q" + string fresh
+//                   fresh <- fresh + 1
+//                   let dexp = d
+//                   let res = qs + " -> " + qi + " [label = \"" + interpretB(And1(x, NEG(d))) + "\"];\n" + interpretC y qi qe
+//                   d <- Or1(x, dexp)
+//                   res
+//    | Choice(x,y) -> dinterpretGC x qs qe + dinterpretGC y qs qe
+
+and interpretOther gc =
+    match gc with
+    | Pred(x,y) -> NEG(x)
+    | Choice(x,y) -> And2((interpretOther x), (interpretOther y))
+
+//and dinterpretOther gc =
+//    match gc with
+//    | Pred(x,y) -> interpretB(NEG(d))
+//    | Choice(x,y) -> dinterpretOther x + "&&" + dinterpretOther y
 
 // We
 let parse input =
@@ -135,15 +222,14 @@ let parse input =
     // return the result of parsing (i.e. value of type "expr")
     res
 
-let program = "i:=0;
-x:=0;
-y:=0;
-do i<10 -> if A[i]>=0 -> x:=x+A[i];
-                         i:=i+1
-           [] A[i]<0 -> i:=i+1;
-                        i:=i+2
-           fi;
-           y:=y+1
+let program = "i:=1;
+do i<n -> j:=i;
+          do (j>0)&&(A[j-1]>A[j]) -> t:=A[j];
+                                     A[j]:=A[j-1];
+                                     A[j-1]:=t;
+                                     j:=j-1
+          od;
+          i:=i+1
 od"
 
 // We implement here the function that interacts with the user
@@ -156,10 +242,60 @@ od"
         
 //        printfn "Result: \n%s" (evalC(parse program) 0)
 
+(*
 let rec compile determinstic =
     det <- determinstic
     printfn "Result: \n%s" (compileC(parse program) "qs" "qe")
+*)
 
+let rec run endNode node edgeMap varMap arrMap =
+    printfn "---- %s ----" node
+    for entry in (varMap:Map<string, int>) do
+        printfn "%s = %d" entry.Key entry.Value
+
+    for entry in (arrMap:Map<string, List<int>>) do
+        printf "%s = [" entry.Key
+        match entry.Value with
+        | v::vs -> printf "%d" v
+                   for number in (vs) do
+                       printf ", %d" number
+        | [] -> printf ""
+        printfn "]"
+
+    printfn ""
+
+    let (next, v, a) = 
+        try 
+            (Map.find node edgeMap) (varMap, arrMap)
+        with
+        | :? _ -> ("stuck", varMap, arrMap)
+
+    if (next = endNode) then (next, v, a, "TERMINATED")
+    elif (next = "stuck") then (next, v, a, "STUCK")
+    else run endNode next edgeMap v a
+
+let rec interpret deterministic =
+    det <- deterministic
+    let varMap = Map.ofList [("i", 0); ("j", 0); ("n", 5); ("t", 0)]
+    let arrMap = Map.ofList [("A", [2])]
+    let inputEdges = Map.ofList []
+    let outputEdges = interpretC(parse program) "qs" "qe" inputEdges
+    let (endNode, v, a, s) = run "qe" "qs" outputEdges varMap arrMap
+
+    printfn "---- %s ----" endNode
+    for entry in (v:Map<string, int>) do
+        printfn "%s = %d" entry.Key entry.Value
+    
+    for entry in (a:Map<string, List<int>>) do
+        printf "%s = [" entry.Key
+        match entry.Value with
+        | v::vs -> printf "%d" v
+                   for number in (vs) do
+                       printf ", %d" number
+        | [] -> printf ""
+        printfn "]"
+
+    printfn "STATUS: %s" s
 
 // Start interacting with the user
-compile true
+interpret false

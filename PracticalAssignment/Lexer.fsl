@@ -49,6 +49,7 @@ rule tokenize = parse
 | do			{ DO }
 | od			{ OD }
 | "->"			{ PRED }
+| "[]"			{ CHOICE }
 | '['			{ LBRA }
 | ']'			{ RBRA }
 | "true"		{ TRUE }

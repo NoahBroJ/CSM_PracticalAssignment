@@ -18,6 +18,7 @@ type token =
   | DO
   | OD
   | PRED
+  | CHOICE
   | LBRA
   | RBRA
   | AND
@@ -47,6 +48,7 @@ type tokenId =
     | TOKEN_DO
     | TOKEN_OD
     | TOKEN_PRED
+    | TOKEN_CHOICE
     | TOKEN_LBRA
     | TOKEN_RBRA
     | TOKEN_AND
@@ -75,7 +77,8 @@ type nonTerminalId =
     | NONTERM_guardedcommand
     | NONTERM_choicecommand
     | NONTERM_command
-    | NONTERM_var
+    | NONTERM_readvar
+    | NONTERM_writevar
 /// This function maps tokens to integer indexes
 val tagOfToken: token -> int
 

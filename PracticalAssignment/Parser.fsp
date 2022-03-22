@@ -5,7 +5,7 @@ open TypesAST
 // Declare the tokens (terminal symbols)
 %token <int> NUM
 %token <string> VAR
-%token TRUE FALSE TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED LBRA RBRA AND OR NOT EQUAL GREATER LESS EOF
+%token TRUE FALSE TIMES DIV PLUS MINUS POW LPAR RPAR ASSIGN SKIP SEMICOLON IF FI DO OD PRED CHOICE LBRA RBRA AND OR NOT EQUAL GREATER LESS EOF
 // NOTE: the actual formats of these tokens are defined in the lexer file
 //       as regular expressions
 
@@ -33,7 +33,8 @@ open TypesAST
 %type <guardedCommand> guardedcommand
 %type <guardedCommand> choicecommand
 %type <command> command
-%type <aexpr> var
+%type <aexpr> readvar
+%type <string> writevar
 
 // Grammar productions
 %%
@@ -78,7 +79,7 @@ unary:
 num:
 	| NUM							{ Num($1) }
 	| LPAR expression RPAR			{ APar($2) }
-	| var							{ $1 }
+	| readvar							{ $1 }
 
 orbool:
 	| andbool						{ $1 }
@@ -110,19 +111,22 @@ guardedcommand:
 	| orbool PRED command				{ Pred($1, $3) }
 
 choicecommand:
-	| guardedcommand LBRA RBRA guardedcommand { Choice($1, $4) }
+	| guardedcommand CHOICE guardedcommand		{ Choice($1, $3) }
 
 command:
-	| var ASSIGN expression			{ Assign($1, $3) }
-	| var LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
+	| writevar ASSIGN expression			{ Assign($1, $3) }
+	| writevar LBRA expression RBRA ASSIGN expression	{ ArrAssign($1, $3, $6) }
 	| SKIP							{ Skip }
 	| command SEMICOLON command		{ SemiColon($1, $3) }
 	| IF guardedcommand FI			{ Iffi($2) }
 	| DO guardedcommand OD			{ Dood($2) }
 
-var:
+readvar:
 	| VAR 							{ Var($1) }
 	| VAR LBRA expression RBRA		{ ArrayIndex($1, $3) }
+
+writevar:
+	| VAR							{ $1 }
 
 // Again, the code annotation specifies the result of parsing
 // For example { TimesExpr($1,$3) } specifies that parsing with the production
