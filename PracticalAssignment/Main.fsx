@@ -135,10 +135,10 @@ let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
 let stupidAnd b1 b2 = if b1 then b2 else if b2 then false else false 
 
 let rec insertAt x ys n =
-    match n, ys with 
-    | 1, _      
-    | _, []     -> x::ys
-    | _, y::ys  -> y::insertAt x ys (n-1)
+    match n, ys with
+    | 0, _::ys -> x::ys
+    | n, y::ys -> y::(insertAt x ys (n - 1))
+    | _, [] -> raise (System.ArgumentException("The fuck you doin"))
 
 let rec interpretC e qs qe edgeMap =
     match e with
@@ -189,7 +189,7 @@ and interpretGC e qs qe edgeMap =
                        let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else (Map.find qs edgeMap) (v, a)) edgeMap
                        interpretC y qi qe tempMap
                    else
-                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else (qs, v, a)) edgeMap
+                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else ("stuck", v, a)) edgeMap
                        interpretC y qi qe tempMap
     | Choice(x,y) -> let tempMap = interpretGC x qs qe edgeMap 
                      interpretGC y qs qe tempMap
@@ -222,15 +222,15 @@ let parse input =
     // return the result of parsing (i.e. value of type "expr")
     res
 
-let program = "i:=0;
-x:=0;
-y:=0;
-do (n>i)&&(A[i]>=0) -> x:=x+A[i];
-                       y:=y+1;
-                       i:=i+1
-[] (n>i)&&(0>A[i]) -> i:=i+1
-od;
-x:=x/y"
+let program = "i:=1;
+do i<n -> j:=i;
+          do (j>0)&&(A[j-1]>A[j]) -> t:=A[j];
+                                     A[j]:=A[j-1];
+                                     A[j-1]:=t;
+                                     j:=j-1
+          od;
+          i:=i+1
+od"
 
 // We implement here the function that interacts with the user
 //let rec compute =
@@ -252,25 +252,50 @@ let rec run endNode node edgeMap varMap arrMap =
     printfn "---- %s ----" node
     for entry in (varMap:Map<string, int>) do
         printfn "%s = %d" entry.Key entry.Value
+
+    for entry in (arrMap:Map<string, List<int>>) do
+        printf "%s = [" entry.Key
+        match entry.Value with
+        | v::vs -> printf "%d" v
+                   for number in (vs) do
+                       printf ", %d" number
+        | [] -> printf ""
+        printfn "]"
+
     printfn ""
 
-    let (next, v, a) = (Map.find node edgeMap) (varMap, arrMap)
+    let (next, v, a) = 
+        try 
+            (Map.find node edgeMap) (varMap, arrMap)
+        with
+        | :? _ -> ("stuck", varMap, arrMap)
 
-    if (next = endNode) then (v, a)
+    if (next = endNode) then (next, v, a, "TERMINATED")
+    elif (next = "stuck") then (next, v, a, "STUCK")
     else run endNode next edgeMap v a
 
 let rec interpret deterministic =
     det <- deterministic
-    let varMap = Map.ofList [("i", 0); ("n", 4); ("y", 0); ("x", 0)]
-    let arrMap = Map.ofList [("A", [1;3;8;4])]
+    let varMap = Map.ofList [("i", 0); ("j", 0); ("n", 5); ("t", 0)]
+    let arrMap = Map.ofList [("A", [2])]
     let inputEdges = Map.ofList []
     let outputEdges = interpretC(parse program) "qs" "qe" inputEdges
-    let (v, a) = run "qe" "qs" outputEdges varMap arrMap
+    let (endNode, v, a, s) = run "qe" "qs" outputEdges varMap arrMap
 
-    printfn "---- qe ----"
+    printfn "---- %s ----" endNode
     for entry in (v:Map<string, int>) do
         printfn "%s = %d" entry.Key entry.Value
-    printfn "STATUS: TERMINATED"
+    
+    for entry in (a:Map<string, List<int>>) do
+        printf "%s = [" entry.Key
+        match entry.Value with
+        | v::vs -> printf "%d" v
+                   for number in (vs) do
+                       printf ", %d" number
+        | [] -> printf ""
+        printfn "]"
+
+    printfn "STATUS: %s" s
 
 // Start interacting with the user
 interpret false
