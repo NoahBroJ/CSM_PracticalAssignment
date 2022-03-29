@@ -128,8 +128,6 @@ and dcompileOther gc =
     | Choice(x,y) -> dcompileOther x + "&&" + dcompileOther y
 *)
 
-let edgeMap = Map.empty<string, ((Map<string, int32> * Map<string, int[]>) -> (string * Map<string, int32> * Map<string, int[]>))>
-
 let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
 
 let stupidAnd b1 b2 = if b1 then b2 else if b2 then false else false 
@@ -212,6 +210,47 @@ and interpretOther gc =
 //    match gc with
 //    | Pred(x,y) -> interpretB(NEG(d))
 //    | Choice(x,y) -> dinterpretOther x + "&&" + dinterpretOther y
+
+type shortPath =
+    | Command of command
+    | Bexpr of bexpr
+
+type path =
+    | Command of (string * shortPath)
+    | Split of (List<(string * shortPath)> * bool)
+
+
+let rec buildC e qs qe edgeMap =
+    match e with
+    | Assign(x,y) -> Map.add qs (Command(qe, (Assign(x,y)))) edgeMap
+    | ArrAssign(x,y,z) -> Map.add qs (Command(qe, (ArrAssign(x,y,z)))) edgeMap
+    | Skip ->  Map.add qs (Command(qe, Skip)) edgeMap
+    | SemiColon(x,y) -> let qi = "q" + string fresh
+                        fresh <- fresh + 1
+                        let tempMap = buildC x qs qi edgeMap
+                        buildC y qi qe tempMap
+    | Iffi(x) -> buildGC x qs qe edgeMap
+    | Dood(x) -> let tempMap = (buildGC x qs qs edgeMap)
+                 match Map.find qs tempMap with
+                 | Split(splitList, _) -> let extraSplit = (qe, Split(((buildOther x)::splitList), true))
+                                          Map.add qs extraSplit tempMap
+and buildGC e qs qe edgeMap=
+   match e with
+   | Pred(x,y) -> let qi = "q" + string fresh
+                  fresh <- fresh + 1
+                  if (Map.containsKey qs edgeMap) then
+                      match Map.find qs edgeMap with
+                      | Split(splitList, isDo) -> let tempMap = Map.add qs (Split(((qi, x)::splitList), isDo)) edgeMap
+                                                  buildC y qi qe tempMap
+                  else
+                      let tempMap = Map.add qs (Split(((qi, x)::[]), false)) edgeMap
+                      buildC y qi qe tempMap
+   | Choice(x,y) -> let tempMap = buildGC x qs qe edgeMap 
+                    buildGC y qs qe tempMap
+and buildOther gc =
+    match gc with
+    | Pred(x,y) -> NEG(x)
+    | Choice(x,y) -> And2((buildOther x), (buildOther y))
 
 // We
 let parse input =
@@ -296,6 +335,42 @@ let rec interpret deterministic =
         printfn "]"
 
     printfn "STATUS: %s" s
+
+let getDomP pg =
+    let isDoNode = function
+        | Split(_, isDo) -> isDo
+        | _ -> false
+
+    Map.fold (fun domP q path -> if (isDoNode path) then ((q)::domP) else domP) [] pg
+
+let getPointingEdges q pg =
+    let isPointingEdge = function
+        | Command(pointingTo, command) when pointingTo = q -> Some(command)
+        | Split(pathList, _) -> match List.tryFind (fun (pointingTo, _) -> pointingTo = q) pathList with
+                                | Some(_, bexpr) -> Some(bexpr)
+                                | _ -> None
+        | _ -> None
+
+    let addToPointingEdges pointingEdges pointingFrom path =
+        match isPointingEdge path with
+        | Some(shortpath) -> (pointingFrom, shortpath)::pointingEdges
+        | _ -> pointingEdges
+
+    // fold: (’a -> ’b -> ’c -> ’a) -> ’a -> Map<’b, ’c> -> ’a
+    // fold: (List<(string, shortPath)> -> string -> path -> List<(string, shortPath)>) -> List<(string, shortPath)> -> Map<string, path> -> List<(string, shortPath)>
+    Map.fold addToPointingEdges [] pg
+
+let rec getSPFs qs edges qe pg domP =
+    List.fold (fun fragmentSet (q, shortpath) -> if (List.contains q domP) then (q, (shortpath::edges), qe)::fragmentSet else getSPFs q (shortpath::edges) qe pg domP fragmentSet) [] (getPointingEdges qs pg)
+    
+
+let rec verify program startPhi endPhi loopPhis =
+    let pg = buildC(parse program) "qs" "qe" (Map.ofList [])
+    // Get Dom(P) DONE
+    // Get SPFs DONE
+    // Get user-defined predicates for each node in Dom(P) (precondition, postcondition, loop invariants)
+    // For each SPF, check that the postcondition transformed by the path fragment is a tautology of the precondition
+    
 
 // Start interacting with the user
 interpret false
