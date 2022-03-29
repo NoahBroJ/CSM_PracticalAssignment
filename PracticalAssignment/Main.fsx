@@ -341,7 +341,7 @@ let getDomP pg =
         | Split(_, isDo) -> isDo
         | _ -> false
 
-    Map.fold (fun domP q path -> if (isDoNode path) then ((q)::domP) else domP) [] pg
+    Map.fold (fun domP q path -> if (isDoNode path) then (domP@[q]) else domP) [] pg
 
 let getPointingEdges q pg =
     let isPointingEdge = function
@@ -362,15 +362,70 @@ let getPointingEdges q pg =
 
 let rec getSPFs qs edges qe pg domP =
     List.fold (fun fragmentSet (q, shortpath) -> if (List.contains q domP) then (q, (shortpath::edges), qe)::fragmentSet else getSPFs q (shortpath::edges) qe pg domP fragmentSet) [] (getPointingEdges qs pg)
-    
+
+let replaceVar x (action:shortPath) =
+    match action with
+    | Command(c) -> match c with
+                    | Assign(s, a) when s = x -> a
+                    | _ -> Var(x)
+    | _ -> Var(x)
+
+let replaceArr A i (action:shortPath) =
+    match action with
+    | Command(c) -> match c with
+                    | ArrAssign(s, index, a) when s = A -> // Return a if index = i. If index and i are both vars, maybe modify the whole predicate so that A[i]/a if index = i.
+                    | _ -> ArrayIndex(A, i)
+    | _ -> ArrayIndex(A, i)
+
+let rec transformArithmetic (expr:aexpr) (action:shortPath) =
+    match expr with
+    | Num(n) -> Num(n)
+    | Var(s) -> replaceVar s action
+    | APar(a) -> APar(transformArithmetic a action)
+    | ArrayIndex(s, a) -> //Spooky magic
+    | Plus(a1, a2) -> Plus((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | Minus(a1, a2) -> Minus((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | Times(a1, a2) -> Times((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | Div(a1, a2) -> Div((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | UMinus(a) -> UMinus(transformArithmetic a action)
+    | Pow(a1, a2) -> Pow((transformArithmetic a1 action), (transformArithmetic a2 action))
+
+let rec transformPredicate (predicate:pexpr) (action:shortPath) =
+    match predicate with
+    | T   -> T
+    | Or(p1, p2)  -> Or((transformPredicate p1 action), (transformPredicate p2 action))
+    | And(p1, p2) ->And((transformPredicate p1 action), (transformPredicate p2 action))
+    | NEG(p) -> NEG((transformPredicate p action))
+    | EQ  -> 
+    | NEQ ->
+    | GT  ->
+    | GEQ ->
+    | LT  ->
+    | LEQ ->
 
 let rec verify program startPhi endPhi loopPhis =
-    let pg = buildC(parse program) "qs" "qe" (Map.ofList [])
+    let startNode = "qs"
+    let endNode = "qe"
+    let pg = buildC(parse program) startNode endNode (Map.ofList [])
     // Get Dom(P) DONE
+    let domP = [startNode]@(getDomP pg)@[endNode]
     // Get SPFs DONE
+    //(’a -> ’b -> ’a) -> ’a -> ’b list -> ’a
+    //((string * shortPath list * string) list -> string -> (string * shortPath list * string) list) -> (string * shortPath list * string) list -> string list -> (string * shortPath list * string) list
+    let spfs = List.fold (fun spfList node -> spfList@(getSPFs node [] node pg domP)) [] domP
     // Get user-defined predicates for each node in Dom(P) (precondition, postcondition, loop invariants)
     // For each SPF, check that the postcondition transformed by the path fragment is a tautology of the precondition
-    
+    let mapNodeToPredicate node =
+        if (node = startNode) then
+            startPhi
+        elif (node = endNode) then
+            endPhi
+        else
+            let index = List.findIndex (fun n -> n = node) domP
+            List.item (index - 1) loopPhis
+
+    let predicatePathFragments = List.map (fun (sNode, pathList, eNode) -> (mapNodeToPredicate sNode, pathList, mapNodeToPredicate eNode)) spfs
+
 
 // Start interacting with the user
 interpret false
