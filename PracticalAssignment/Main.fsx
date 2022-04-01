@@ -397,15 +397,15 @@ let rec transformArithmetic (expr:aexpr) (action:shortPath) =
 let rec transformPredicate (predicate:pexpr) (action:shortPath) =
     match predicate with
     | T -> T
-    | Or(p1, p2) -> Or((transformPredicate p1 action), (transformPredicate p2 action))
-    | And(p1, p2) ->And((transformPredicate p1 action), (transformPredicate p2 action))
-    | NEG(p) -> NEG((transformPredicate p action))
-    | EQ(a1, a2) -> EQ((transformArithmetic a1 action), (transformArithmetic a2 action))
-    | NEQ(a1, a2) -> NEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
-    | GT(a1, a2) -> GT((transformArithmetic a1 action), (transformArithmetic a2 action))
-    | GEQ(a1, a2) -> GEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
-    | LT(a1, a2) -> LT((transformArithmetic a1 action), (transformArithmetic a2 action))
-    | LEQ(a1, a2) -> LEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | POr(p1, p2) -> POr((transformPredicate p1 action), (transformPredicate p2 action))
+    | PAnd(p1, p2) -> PAnd((transformPredicate p1 action), (transformPredicate p2 action))
+    | PNEG(p) -> PNEG((transformPredicate p action))
+    | PEQ(a1, a2) -> PEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | PNEQ(a1, a2) -> PNEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | PGT(a1, a2) -> PGT((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | PGEQ(a1, a2) -> PGEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | PLT(a1, a2) -> PLT((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | PLEQ(a1, a2) -> PLEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
 
 let rec aexprToString e =
     match e with
@@ -422,15 +422,15 @@ let rec aexprToString e =
 and pexprToString e = 
     match e with
     | T -> "true"
-    | And(x,y) -> pexprToString(x) + " && " + pexprToString(y)
-    | Or(x,y) -> pexprToString(x) + " || " + pexprToString(y)
-    | NEG(x) -> "!(" + pexprToString(x) + ")"
-    | EQ(x,y) -> aexprToString(x) + " = " + aexprToString(y)
-    | NEQ(x,y) -> aexprToString(x) + " != " + aexprToString(y)
-    | GT(x,y) -> aexprToString(x) + " > " + aexprToString(y)
-    | GEQ(x,y) -> aexprToString(x) + " >= " + aexprToString(y)
-    | LT(x,y) -> aexprToString(x) + " < " + aexprToString(y)
-    | LEQ(x,y) -> aexprToString(x) + " <= " + aexprToString(y)
+    | PAnd(x,y) -> pexprToString(x) + " && " + pexprToString(y)
+    | POr(x,y) -> pexprToString(x) + " || " + pexprToString(y)
+    | PNEG(x) -> "!(" + pexprToString(x) + ")"
+    | PEQ(x,y) -> aexprToString(x) + " = " + aexprToString(y)
+    | PNEQ(x,y) -> aexprToString(x) + " != " + aexprToString(y)
+    | PGT(x,y) -> aexprToString(x) + " > " + aexprToString(y)
+    | PGEQ(x,y) -> aexprToString(x) + " >= " + aexprToString(y)
+    | PLT(x,y) -> aexprToString(x) + " < " + aexprToString(y)
+    | PLEQ(x,y) -> aexprToString(x) + " <= " + aexprToString(y)
 
 let getProofObligation(predS, actionList, predE) =
     //(’a -> ’b -> ’a) -> ’a -> ’b list -> ’a
@@ -470,8 +470,8 @@ let rec verify program startPhi endPhi loopPhis =
 // Start interacting with the user
 let program = "x:=x+y"
 
-let startPhi = AND(EQ(Var("x"), Num(3)), EQ(Var("y"), Num(2)))
-let endPhi = EQ(Var("x"), Num(5))
+let startPhi = PAND(EQ(Var("x"), Num(3)), EQ(Var("y"), Num(2)))
+let endPhi = PEQ(Var("x"), Num(5))
 let loopPhis = []
 
 verify program startPhi endPhi loopPhis
