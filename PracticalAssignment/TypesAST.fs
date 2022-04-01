@@ -47,3 +47,15 @@ and command =
     | SemiColon of (command * command)
     | Iffi of (guardedCommand)
     | Dood of (guardedCommand)
+    
+type pexpr = 
+    | PT
+    | POr of (pexpr * pexpr)
+    | PAnd of (pexpr * pexpr)
+    | PNEG of (pexpr)
+    | PEQ of (aexpr * aexpr)
+    | PNEQ of (aexpr * aexpr)
+    | PGT of (aexpr * aexpr)
+    | PGEQ of (aexpr * aexpr)
+    | PLT of (aexpr * aexpr)
+    | PLEQ of (aexpr * aexpr)
