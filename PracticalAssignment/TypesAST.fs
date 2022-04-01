@@ -49,13 +49,13 @@ and command =
     | Dood of (guardedCommand)
     
 type pexpr = 
-    | T
-    | Or of (pexpr * pexpr)
-    | And of (pexpr * pexpr)
-    | NEG of (pexpr)
-    | EQ of (aexpr * aexpr)
-    | NEQ of (aexpr * aexpr)
-    | GT of (aexpr * aexpr)
-    | GEQ of (aexpr * aexpr)
-    | LT of (aexpr * aexpr)
-    | LEQ of (aexpr * aexpr)
+    | PT
+    | POr of (pexpr * pexpr)
+    | PAnd of (pexpr * pexpr)
+    | PNEG of (pexpr)
+    | PEQ of (aexpr * aexpr)
+    | PNEQ of (aexpr * aexpr)
+    | PGT of (aexpr * aexpr)
+    | PGEQ of (aexpr * aexpr)
+    | PLT of (aexpr * aexpr)
+    | PLEQ of (aexpr * aexpr)
