@@ -261,16 +261,6 @@ let parse input =
     // return the result of parsing (i.e. value of type "expr")
     res
 
-let program = "i:=1;
-do i<n -> j:=i;
-          do (j>0)&&(A[j-1]>A[j]) -> t:=A[j];
-                                     A[j]:=A[j-1];
-                                     A[j-1]:=t;
-                                     j:=j-1
-          od;
-          i:=i+1
-od"
-
 // We implement here the function that interacts with the user
 //let rec compute =
 //        (* printf "Enter a GCL program: "
@@ -370,10 +360,24 @@ let replaceVar x (action:shortPath) =
                     | _ -> Var(x)
     | _ -> Var(x)
 
+let rec exprAreEqual expr1 expr2 =
+    match (expr1, expr2) with
+    | ((Num(n1)), (Num(n2))) -> n1 = n2
+    | ((Var(x1)), (Var(x2))) -> x1 = x2
+    | ((APar(a1)), (APar(a2))) -> exprAreEqual a1 a2
+    | ((ArrayIndex(x1 ,a1)), (ArrayIndex(x2, a2))) -> (x1 = x2) && (exprAreEqual a1 a2)
+    | ((Plus(a11, a12)), (Plus(a21, a22))) -> ((exprAreEqual a11 a21) && (exprAreEqual a12 a22)) || ((exprAreEqual a11 a22) && (exprAreEqual a12 a21))
+    | ((Minus(a11, a12)), (Minus(a21, a22))) -> (exprAreEqual a11 a21) && (exprAreEqual a12 a22)
+    | ((Times(a11, a12)), (Times(a21, a22))) -> ((exprAreEqual a11 a21) && (exprAreEqual a12 a22)) || ((exprAreEqual a11 a22) && (exprAreEqual a12 a21))
+    | ((Div(a11, a12)), (Div(a21, a22))) -> (exprAreEqual a11 a21) && (exprAreEqual a12 a22)
+    | ((UMinus(a1)), (UMinus(a2))) -> exprAreEqual a1 a2
+    | ((Pow(a11, a12)), (Pow(a21, a22))) -> (exprAreEqual a11 a21) && (exprAreEqual a12 a22)
+    | _ -> false
+
 let replaceArr A i (action:shortPath) =
     match action with
     | Command(c) -> match c with
-                    | ArrAssign(s, index, a) when s = A -> // Return a if index = i. If index and i are both vars, maybe modify the whole predicate so that A[i]/a if index = i.
+                    | ArrAssign(s, index, a) when (s = A) && (exprAreEqual index i) -> a
                     | _ -> ArrayIndex(A, i)
     | _ -> ArrayIndex(A, i)
 
@@ -382,7 +386,7 @@ let rec transformArithmetic (expr:aexpr) (action:shortPath) =
     | Num(n) -> Num(n)
     | Var(s) -> replaceVar s action
     | APar(a) -> APar(transformArithmetic a action)
-    | ArrayIndex(s, a) -> //Spooky magic
+    | ArrayIndex(s, a) -> replaceArr s a action
     | Plus(a1, a2) -> Plus((transformArithmetic a1 action), (transformArithmetic a2 action))
     | Minus(a1, a2) -> Minus((transformArithmetic a1 action), (transformArithmetic a2 action))
     | Times(a1, a2) -> Times((transformArithmetic a1 action), (transformArithmetic a2 action))
@@ -392,16 +396,49 @@ let rec transformArithmetic (expr:aexpr) (action:shortPath) =
 
 let rec transformPredicate (predicate:pexpr) (action:shortPath) =
     match predicate with
-    | T   -> T
-    | Or(p1, p2)  -> Or((transformPredicate p1 action), (transformPredicate p2 action))
+    | T -> T
+    | Or(p1, p2) -> Or((transformPredicate p1 action), (transformPredicate p2 action))
     | And(p1, p2) ->And((transformPredicate p1 action), (transformPredicate p2 action))
     | NEG(p) -> NEG((transformPredicate p action))
-    | EQ  -> 
-    | NEQ ->
-    | GT  ->
-    | GEQ ->
-    | LT  ->
-    | LEQ ->
+    | EQ(a1, a2) -> EQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | NEQ(a1, a2) -> NEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | GT(a1, a2) -> GT((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | GEQ(a1, a2) -> GEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | LT(a1, a2) -> LT((transformArithmetic a1 action), (transformArithmetic a2 action))
+    | LEQ(a1, a2) -> LEQ((transformArithmetic a1 action), (transformArithmetic a2 action))
+
+let rec aexprToString e =
+    match e with
+    | Num(x) -> string x
+    | Var(x) -> x
+    | APar(x) -> "(" + aexprToString(x) + ")"
+    | ArrayIndex(x,y) -> x + "[" + aexprToString(y) + "]"
+    | Times(x,y) -> aexprToString(x) + " * " + aexprToString(y)
+    | Div(x,y) -> aexprToString(x) + " / " + aexprToString(y)
+    | Plus(x,y) -> aexprToString(x) + " + " + aexprToString(y)
+    | Minus(x,y) -> aexprToString(x) + " - " + aexprToString(y)
+    | Pow(x,y) -> aexprToString(x) + "^" + aexprToString(y)
+    | UMinus(x) -> "-" + aexprToString(x)
+and pexprToString e = 
+    match e with
+    | T -> "true"
+    | And(x,y) -> pexprToString(x) + " && " + pexprToString(y)
+    | Or(x,y) -> pexprToString(x) + " || " + pexprToString(y)
+    | NEG(x) -> "!(" + pexprToString(x) + ")"
+    | EQ(x,y) -> aexprToString(x) + " = " + aexprToString(y)
+    | NEQ(x,y) -> aexprToString(x) + " != " + aexprToString(y)
+    | GT(x,y) -> aexprToString(x) + " > " + aexprToString(y)
+    | GEQ(x,y) -> aexprToString(x) + " >= " + aexprToString(y)
+    | LT(x,y) -> aexprToString(x) + " < " + aexprToString(y)
+    | LEQ(x,y) -> aexprToString(x) + " <= " + aexprToString(y)
+
+let getProofObligation(predS, actionList, predE) =
+    //(’a -> ’b -> ’a) -> ’a -> ’b list -> ’a
+    //(pexpr -> shortPath -> pexpr) -> pexpr -> shortPath list -> pexpr
+    let predT = List.fold transformPredicate predE actionList
+    (pexprToString predS) + " => " + (pexprToString predT)
+
+
 
 let rec verify program startPhi endPhi loopPhis =
     let startNode = "qs"
@@ -425,7 +462,16 @@ let rec verify program startPhi endPhi loopPhis =
             List.item (index - 1) loopPhis
 
     let predicatePathFragments = List.map (fun (sNode, pathList, eNode) -> (mapNodeToPredicate sNode, pathList, mapNodeToPredicate eNode)) spfs
+    let proofObligations = List.map getProofObligation predicatePathFragments
 
+    for obligation in proofObligations do
+        printfn "%s" obligation
 
 // Start interacting with the user
-interpret false
+let program = "x:=x+y"
+
+let startPhi = AND(EQ(Var("x"), Num(3)), EQ(Var("y"), Num(2)))
+let endPhi = EQ(Var("x"), Num(5))
+let loopPhis = []
+
+verify program startPhi endPhi loopPhis
