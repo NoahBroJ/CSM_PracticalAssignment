@@ -48,6 +48,14 @@ and command =
     | Iffi of (guardedCommand)
     | Dood of (guardedCommand)
     
+type action =
+    | ActAssign of (string * aexpr)
+    | ActArrAssign of (string * aexpr * aexpr)
+    | ActSkip
+    | ActCheck of (bexpr)
+
+type edge = (string * action * string)
+
 type pexpr = 
     | PT
     | POr of (pexpr * pexpr)
