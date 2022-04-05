@@ -67,3 +67,8 @@ type pexpr =
     | PGEQ of (aexpr * aexpr)
     | PLT of (aexpr * aexpr)
     | PLEQ of (aexpr * aexpr)
+
+type sign =
+    | PLUS
+    | MINUS
+    | ZERO

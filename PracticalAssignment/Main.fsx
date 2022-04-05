@@ -362,7 +362,105 @@ let rec verify program startPhi endPhi loopPhis =
 //
 // TASK 5
 //
+let rec cartesian setA setB f = 
+    Set.fold (fun stateA signA -> Set.union stateA (Set.fold (fun stateB signB -> Set.union stateB (f signA signB)) Set.empty setB)) Set.empty setA
 
+let flipSign = function
+    | MINUS -> PLUS
+    | PLUS -> MINUS
+    | ZERO -> ZERO
+
+let signPlus sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, PLUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
+    | (MINUS, _) -> Set.empty.Add(MINUS)
+    | (ZERO, sign) -> Set.empty.Add(sign)
+    | (PLUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
+    | (PLUS, _) -> Set.empty.Add(PLUS)
+    | _ -> Set.empty
+    
+let signMinus sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
+    | (MINUS, _) -> Set.empty.Add(MINUS)
+    | (ZERO, sign) -> Set.empty.Add(flipSign sign)
+    | (PLUS, PLUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
+    | (PLUS, _) -> Set.empty.Add(PLUS)
+    | _ -> Set.empty
+
+let signTimes sign1 sign2 =
+    match sign1, sign2 with
+    | (ZERO, _) -> Set.empty.Add(ZERO)
+    | (_, ZERO) -> Set.empty.Add(ZERO)
+    | (MINUS, sign) -> Set.empty.Add(flipSign sign)
+    | (sign, MINUS) -> Set.empty.Add(flipSign sign)
+    | (PLUS, PLUS) -> Set.empty.Add(PLUS)
+    | _ -> Set.empty
+    
+let signDiv sign1 sign2 =
+    match sign1, sign2 with
+    | (ZERO, _) -> Set.empty.Add(ZERO)
+    | (_, ZERO) -> Set.empty
+    | (MINUS, sign) -> Set.empty.Add(flipSign sign).Add(ZERO)
+    | (sign, MINUS) -> Set.empty.Add(flipSign sign).Add(ZERO)
+    | (PLUS, PLUS) -> Set.empty.Add(PLUS).Add(ZERO)
+    | _ -> Set.empty
+    
+let signUnary sign = flipSign sign
+
+let signPow sign1 sign2 =
+    match sign1, sign2 with
+    | (_, ZERO) -> Set.empty.Add(PLUS)
+    | (ZERO, MINUS) -> Set.empty
+    | (ZERO, PLUS) -> Set.empty.Add(ZERO)
+    | (MINUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
+    | (MINUS, PLUS) -> Set.empty.Add(MINUS).Add(PLUS)
+    | (PLUS, MINUS) -> Set.empty.Add(PLUS).Add(ZERO)
+    | (PLUS, PLUS) -> Set.empty.Add(PLUS)
+
+let rec signEvalA a varSigns arrSigns =
+    match a with
+    | Num(n) -> if (n > 0) then Set.singleton(PLUS)
+                elif (n < 0) then Set.singleton(MINUS)
+                else Set.singleton(ZERO)
+    | Var(x) -> Set.singleton(Map.find x varSigns)
+    | APar(a) -> signEvalA a varSigns arrSigns
+    | ArrayIndex(A, i) -> if (not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZERO; PLUS])))) then
+                              Map.find A arrSigns
+                          else
+                              Set.empty
+    | Plus(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signPlus
+    | Minus(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signMinus
+    | Times(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signTimes
+    | Div(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signDiv
+    | UMinus(a) -> Set.fold (fun state sign -> Set.add (signUnary sign) state) Set.empty (signEvalA a varSigns arrSigns)
+    | Pow(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signPow
+
+// TODO: signEvalB
+
+let signAnalysis action varSigns arrSigns =
+    match action with
+    | ActAssign(x, a) -> if (Map.containsKey x varSigns) then
+                             let aSet = signEvalA a varSigns arrSigns
+                             //(’a -> ’b -> ’a) -> ’a -> ’b set -> ’a
+                             Set.fold (fun M expr -> Set.add ((Map.add x expr varSigns), arrSigns) M) Set.empty aSet
+                         else
+                             Set.empty
+    | ActArrAssign(A, i, a) -> if ((Map.containsKey A arrSigns) && not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZERO; PLUS])))) then
+                                   let aSet = signEvalA a varSigns arrSigns
+                                   //(Set<Set<sign>> -> sign -> Set<Set<sign>>) -> Set<Set<sign>> -> sign set -> Set<Set<sign>>
+                                   let setWithPrime = Map.find A arrSigns
+                                   let setsWithoutPrime = Set.fold (fun state sign -> Set.add (Set.difference setWithPrime (Set.singleton(sign))) state) Set.empty setWithPrime
+                                   let setsWithWithoutPrime = Set.add setWithPrime setsWithoutPrime
+                                   let AReplacements = Set.fold (fun state aSign -> Set.union (Set.map (fun signSet -> Set.add aSign signSet) setsWithWithoutPrime) state) Set.empty aSet
+                                   Set.fold (fun M signSet -> Set.add (varSigns, (Map.add A signSet arrSigns)) M) Set.empty AReplacements
+                               else
+                                   Set.empty
+    | ActCheck(b) -> if (Set.contains true (signEvalB b varSigns arrSigns)) then
+                         Set.singleton(varSigns, arrSigns)
+                     else
+                         Set.empty
+    | Skip -> Set.singleton(varSigns, arrSigns)
 
 // Start interacting with the user
 let program = "z:=0;
