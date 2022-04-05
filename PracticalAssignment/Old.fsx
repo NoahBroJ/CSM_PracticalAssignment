@@ -13,32 +13,6 @@ let rec tab = function
     | 0 -> ""
     | n -> "    " + tab(n-1)
 
-let mutable fresh = 1
-let mutable d = F
-
-let rec edgesC((qStart:string), (qEnd:string), (command:command)) : List<(edge)> =
-    match command with
-    | Assign(x, a) ->       [(qStart, (ActAssign(x,a)), qEnd)]
-    | ArrAssign(A, i, a) -> [(qStart, (ActArrAssign(A,i,a)), qEnd)]
-    | Skip ->               [(qStart, ActSkip, qEnd)]
-    | SemiColon(c1, c2) ->  let qi = "q" + string fresh
-                            fresh <- fresh + 1
-                            (edgesC(qStart, qi, c1))@(edgesC(qi, qEnd, c2))
-    | Iffi(gc) ->           edgesGC(qStart, qEnd, gc)
-    | Dood(gc) ->           let b = doneGC(gc)
-                            (edgesGC(qStart, qEnd, gc))@[(qStart, (ActCheck(b)), qEnd)]
-
-and edgesGC((qStart:string), (qEnd:string), (gCommand:guardedCommand)) : List<(edge)> =
-    match gCommand with
-    | Pred(b, c) ->       let qi = "q" + string fresh
-                          fresh <- fresh + 1
-                          (edgesC(qi, qEnd, c))@[(qStart, (ActCheck(b)), qi)]
-    | Choice(gc1, gc2) -> (edgesGC(qStart, qEnd, gc1))@(edgesGC(qStart, qEnd, gc2))
-
-and doneGC (gCommand:guardedCommand) : bexpr
-    match gCommand with
-    | Pred(b, c) ->       NEG(b)
-    | Choice(gc1, gc2) -> And2((doneGC(gc1)), (doneGC(gc2)))
 
 //let rec evalC e n =
 //    match e with

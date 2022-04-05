@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Temp.fsx" />
     <Compile Include="Main.fsx" />
+    <Compile Include="Old.fsx" />
   </ItemGroup>
 
   <ItemGroup>
