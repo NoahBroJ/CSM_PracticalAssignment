@@ -9,251 +9,6 @@ open Parser
 #load "Lexer.fs"
 open Lexer
 
-let rec tab = function
-    | 0 -> ""
-    | n -> "    " + tab(n-1)
-
-
-//let rec evalC e n =
-//    match e with
-//    | Assign(x,y) -> tab(n) + evalA(x) + " := " + evalA(y)
-//    | ArrAssign(x,y,z) -> tab(n) + " " + evalA(x) + "[" + evalA(y) + "]" + " = " + evalA(z)
-//    | Skip -> tab(n) + "Skip"
-//    | SemiColon(x,y) -> evalC x n + "; \n" + evalC y n
-//    | Iffi(x) -> tab(n) + "if " + evalGC x (n+1) + "\nfi"
-//    | Dood(x) -> tab(n) + "do " + evalGC x (n+1) + "\nod"
-//and evalA e =
-//  match e with
-//    | Num(x) -> string x
-//    | Var(x) -> x
-//    | APar(x) -> "(" + evalA(x) + ")"
-//    | ArrayIndex(x,y) -> x + "[" + evalA(y) + "]"
-//    | Times(x,y) -> evalA(x) + " * " + evalA(y)
-//    | Div(x,y) -> evalA(x) + " / " + evalA(y)
-//    | Plus(x,y) -> evalA(x) + " + " + evalA(y)
-//    | Minus(x,y) -> evalA(x) + " - " + evalA(y)
-//    | Pow(x,y) -> evalA(x) + "^" + evalA(y)
-//    | UMinus(x) -> "-" + evalA(x)
-//and evalB e = 
-//    match e with
-//    | T -> "true"
-//    | F -> "false"
-//    | BPar(x) -> "(" + evalB(x) + ")"
-//    | And1(x,y) -> evalB(x) + " & " + evalB(y)
-//    | Or1(x,y) -> evalB(x) + " | " + evalB(y)
-//    | And2(x,y) -> evalB(x) + " && " + evalB(y)
-//    | Or2(x,y) -> evalB(x) + " || " + evalB(y)
-//    | NEG(x) -> "!" + evalB(x)
-//    | EQ(x,y) -> evalA(x) + " = " + evalA(y)
-//    | NEQ(x,y) -> evalA(x) + " != " + evalA(y)
-//    | GT(x,y) -> evalA(x) + " > " + evalA(y)
-//    | GEQ(x,y) -> evalA(x) + " >= " + evalA(y)
-//    | LT(x,y) -> evalA(x) + " < " + evalA(y)
-//    | LEQ(x,y) -> evalA(x) + " <= " + evalA(y)
-//and evalGC e n =
-//    match e with
-//    | Pred(x,y) -> evalB(x) + " -> \n" + evalC y n
-//    | Choice(x,y) -> tab(n) + evalGC x n + "\n[]\n" + evalGC y n
-    
-
-let mutable fresh = 1
-let mutable d = F
-let mutable det = false
-(*
-
-let rec compileC e qs qe =
-    match e with
-    | Assign(x,y) -> qs + " -> " + qe + " [label = \"" + x + ":=" + compileA(y) + "\"];\n"
-    | ArrAssign(x,y,z) -> qs + " -> " + qe + " [label = \"" + x + "[" + compileA(y) + "]" + "=" + compileA(z) + "\"];\n"
-    | Skip ->  qs + " -> " + qe + " [label = \"" + "Skip" + "\"];\n"
-    | SemiColon(x,y) -> let qi = "q" + string fresh
-                        fresh <- fresh + 1
-                        compileC x qs qi + compileC y qi qe
-    | Iffi(x) -> d <- F
-                 if det then dcompileGC x qs qe else compileGC x qs qe
-    | Dood(x) -> d <- F
-                 if det then dcompileGC x qs qs + qs + " -> " + qe + " [label = \"" + dcompileOther x + "\"];\n" else compileGC x qs qs + qs + " -> " + qe + " [label = \"" + compileOther x + "\"];\n"
-and compileA e =
-    match e with
-    | Num(x) -> string x
-    | Var(x) -> x
-    | APar(x) -> "(" + compileA(x) + ")"
-    | ArrayIndex(x,y) -> x + "[" + compileA(y) + "]"
-    | Times(x,y) -> compileA(x) + " * " + compileA(y)
-    | Div(x,y) -> compileA(x) + " / " + compileA(y)
-    | Plus(x,y) -> compileA(x) + " + " + compileA(y)
-    | Minus(x,y) -> compileA(x) + " - " + compileA(y)
-    | Pow(x,y) -> compileA(x) + "^" + compileA(y)
-    | UMinus(x) -> "-" + compileA(x)
-and compileB e = 
-    match e with
-    | T -> "true"
-    | F -> "false"
-    | BPar(x) -> "(" + compileB(x) + ")"
-    | And1(x,y) -> compileB(x) + " & " + compileB(y)
-    | Or1(x,y) -> compileB(x) + " | " + compileB(y)
-    | And2(x,y) -> compileB(x) + " && " + compileB(y)
-    | Or2(x,y) -> compileB(x) + " || " + compileB(y)
-    | NEG(x) -> "!(" + compileB(x) + ")"
-    | EQ(x,y) -> compileA(x) + " = " + compileA(y)
-    | NEQ(x,y) -> compileA(x) + " != " + compileA(y)
-    | GT(x,y) -> compileA(x) + " > " + compileA(y)
-    | GEQ(x,y) -> compileA(x) + " >= " + compileA(y)
-    | LT(x,y) -> compileA(x) + " < " + compileA(y)
-    | LEQ(x,y) -> compileA(x) + " <= " + compileA(y)
-and compileGC e qs qe =
-    match e with
-    | Pred(x,y) -> let qi = "q" + string fresh
-                   fresh <- fresh + 1
-                   qs + " -> " + qi + " [label = \"" + compileB(x) + "\"];\n" + compileC y qi qe
-    | Choice(x,y) -> compileGC x qs qe + compileGC y qs qe
-and dcompileGC e qs qe =
-    match e with
-    | Pred(x,y) -> let qi = "q" + string fresh
-                   fresh <- fresh + 1
-                   let dexp = d
-                   let res = qs + " -> " + qi + " [label = \"" + compileB(And1(x, NEG(d))) + "\"];\n" + compileC y qi qe
-                   d <- Or1(x, dexp)
-                   res
-    | Choice(x,y) -> dcompileGC x qs qe + dcompileGC y qs qe
-
-and compileOther gc =
-    match gc with
-    | Pred(x,y) -> compileB(NEG(x))
-    | Choice(x,y) -> compileOther x + "&&" + compileOther y
-
-and dcompileOther gc =
-    match gc with
-    | Pred(x,y) -> compileB(NEG(d))
-    | Choice(x,y) -> dcompileOther x + "&&" + dcompileOther y
-*)
-
-let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
-
-let stupidAnd b1 b2 = if b1 then b2 else if b2 then false else false 
-
-let rec insertAt x ys n =
-    match n, ys with
-    | 0, _::ys -> x::ys
-    | n, y::ys -> y::(insertAt x ys (n - 1))
-    | _, [] -> raise (System.ArgumentException("The fuck you doin"))
-
-let rec interpretC e qs qe edgeMap =
-    match e with
-    | Assign(x,y) -> Map.add qs (fun (v, a) -> (qe, (Map.add x (interpretA y v a) v), a)) edgeMap
-    | ArrAssign(x,y,z) -> Map.add qs (fun (v, a) -> (qe, v, (Map.add x (insertAt (interpretA z v a) (Map.find x a)(interpretA y v a)) a))) edgeMap
-    | Skip ->  Map.add qs (fun (v,a) -> (qe, v, a)) edgeMap
-    | SemiColon(x,y) -> let qi = "q" + string fresh
-                        fresh <- fresh + 1
-                        let tempMap = interpretC x qs qi edgeMap
-                        interpretC y qi qe tempMap
-    | Iffi(x) -> interpretGC x qs qe edgeMap
-    | Dood(x) -> let tempMap = (interpretGC x qs qs edgeMap)
-                 let extraEdge = fun (v,a) -> if (interpretB (interpretOther x) v a) then (qe, v, a) else ((Map.find qs tempMap) (v,a))
-                 Map.add qs extraEdge tempMap
-and interpretA e varMap arrMap =
-    match e with
-    | Num(x) -> x
-    | Var(x) -> Map.find x varMap
-    | APar(x) -> interpretA x varMap arrMap
-    | ArrayIndex(x,y) -> List.item (interpretA y varMap arrMap) (Map.find x arrMap)
-    | Times(x,y) -> (interpretA x varMap arrMap) * (interpretA y varMap arrMap)
-    | Div(x,y) -> (interpretA x varMap arrMap) / (interpretA y varMap arrMap)
-    | Plus(x,y) -> (interpretA x varMap arrMap) + (interpretA y varMap arrMap)
-    | Minus(x,y) -> (interpretA x varMap arrMap) - (interpretA y varMap arrMap)
-    | Pow(x,y) -> pown (interpretA x varMap arrMap) (interpretA y varMap arrMap)
-    | UMinus(x) -> 0 - (interpretA x varMap arrMap)
-and interpretB e varMap arrMap = 
-    match e with
-    | T -> true
-    | F -> false
-    | BPar(x) -> interpretB x varMap arrMap
-    | And1(x,y) -> stupidAnd (interpretB x varMap arrMap) (interpretB y varMap arrMap)
-    | Or1(x,y) -> stupidOr (interpretB x varMap arrMap) (interpretB y varMap arrMap)
-    | And2(x,y) -> (interpretB x varMap arrMap) && (interpretB y varMap arrMap)
-    | Or2(x,y) -> (interpretB x varMap arrMap) || (interpretB y varMap arrMap)
-    | NEG(x) -> not (interpretB x varMap arrMap)
-    | EQ(x,y) -> (interpretA x varMap arrMap) = (interpretA y varMap arrMap)
-    | NEQ(x,y) -> (interpretA x varMap arrMap) <> (interpretA y varMap arrMap)
-    | GT(x,y) -> (interpretA x varMap arrMap) > (interpretA y varMap arrMap)
-    | GEQ(x,y) -> (interpretA x varMap arrMap) >= (interpretA y varMap arrMap)
-    | LT(x,y) -> (interpretA x varMap arrMap) < (interpretA y varMap arrMap)
-    | LEQ(x,y) -> (interpretA x varMap arrMap) <= (interpretA y varMap arrMap)
-and interpretGC e qs qe edgeMap =
-    match e with
-    | Pred(x,y) -> let qi = "q" + string fresh
-                   fresh <- fresh + 1
-                   if (Map.containsKey qs edgeMap) then
-                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else (Map.find qs edgeMap) (v, a)) edgeMap
-                       interpretC y qi qe tempMap
-                   else
-                       let tempMap = Map.add qs (fun (v, a) -> if (interpretB x v a) then (qi, v, a) else ("stuck", v, a)) edgeMap
-                       interpretC y qi qe tempMap
-    | Choice(x,y) -> let tempMap = interpretGC x qs qe edgeMap 
-                     interpretGC y qs qe tempMap
-//and dinterpretGC e qs qe =
-//    match e with
-//    | Pred(x,y) -> let qi = "q" + string fresh
-//                   fresh <- fresh + 1
-//                   let dexp = d
-//                   let res = qs + " -> " + qi + " [label = \"" + interpretB(And1(x, NEG(d))) + "\"];\n" + interpretC y qi qe
-//                   d <- Or1(x, dexp)
-//                   res
-//    | Choice(x,y) -> dinterpretGC x qs qe + dinterpretGC y qs qe
-
-and interpretOther gc =
-    match gc with
-    | Pred(x,y) -> NEG(x)
-    | Choice(x,y) -> And2((interpretOther x), (interpretOther y))
-
-//and dinterpretOther gc =
-//    match gc with
-//    | Pred(x,y) -> interpretB(NEG(d))
-//    | Choice(x,y) -> dinterpretOther x + "&&" + dinterpretOther y
-
-type action =
-    | ACommand of command
-    | ABexpr of bexpr
-
-type path =
-    | PCommand of (string * action)
-    | PSplit of (List<(string * action)> * bool)
-
-
-let rec buildC e qs qe edgeMap =
-    match e with
-    | Assign(x,y) -> Map.add qs (PCommand(qe, (ACommand(Assign(x,y))))) edgeMap
-    | ArrAssign(x,y,z) -> Map.add qs (PCommand(qe, (ACommand(ArrAssign(x,y,z))))) edgeMap
-    | Skip ->  Map.add qs (PCommand(qe, ACommand(Skip))) edgeMap
-    | SemiColon(x,y) -> let qi = "q" + string fresh
-                        fresh <- fresh + 1
-                        let tempMap = buildC x qs qi edgeMap
-                        buildC y qi qe tempMap
-    | Iffi(x) -> buildGC x qs qe edgeMap
-    | Dood(x) -> let tempMap = (buildGC x qs qs edgeMap)
-                 match Map.find qs tempMap with
-                 | PSplit(splitList, _) -> let extraSplit = PSplit(((qe, (ABexpr(buildOther x)))::splitList), true)
-                                           Map.add qs extraSplit tempMap
-and buildGC e qs qe edgeMap=
-   match e with
-   | Pred(x,y) -> let qi = "q" + string fresh
-                  fresh <- fresh + 1
-                  if (Map.containsKey qs edgeMap) then
-                      match Map.find qs edgeMap with
-                      | PSplit(splitList, isDo) -> let tempMap = Map.add qs (PSplit(((qi, ABexpr(x))::splitList), isDo)) edgeMap
-                                                   buildC y qi qe tempMap
-                  else
-                      let tempMap = Map.add qs (PSplit(((qi, ABexpr(x))::[]), false)) edgeMap
-                      buildC y qi qe tempMap
-   | Choice(x,y) -> let tempMap = buildGC x qs qe edgeMap 
-                    buildGC y qs qe tempMap
-and buildOther gc =
-    match gc with
-    | Pred(x,y) -> NEG(x)
-    | Choice(x,y) -> And2((buildOther x), (buildOther y))
-        
-
-// We
 let parse input =
     // translate string into a buffer of characters
     let lexbuf = LexBuffer<char>.FromString input
@@ -261,25 +16,163 @@ let parse input =
     let res = Parser.start Lexer.tokenize lexbuf
     // return the result of parsing (i.e. value of type "expr")
     res
+    
+let mutable fresh = 1
+    
+let rec edgesC((qStart:string), (qEnd:string), (command:command)) : List<(edge)> =
+    match command with
+    | Assign(x, a) ->       [(qStart, (ActAssign(x,a)), qEnd)]
+    | ArrAssign(A, i, a) -> [(qStart, (ActArrAssign(A,i,a)), qEnd)]
+    | Skip ->               [(qStart, ActSkip, qEnd)]
+    | SemiColon(c1, c2) ->  let qi = "q" + string fresh
+                            fresh <- fresh + 1
+                            (edgesC(qStart, qi, c1))@(edgesC(qi, qEnd, c2))
+    | Iffi(gc) ->           edgesGC(qStart, qEnd, gc)
+    | Dood(gc) ->           let b = doneGC(gc)
+                            (edgesGC(qStart, qStart, gc))@[(qStart, (ActCheck(b)), qEnd)]
+    
+and edgesGC((qStart:string), (qEnd:string), (gCommand:guardedCommand)) : List<(edge)> =
+    match gCommand with
+    | Pred(b, c) ->       let qi = "q" + string fresh
+                          fresh <- fresh + 1
+                          (edgesC(qi, qEnd, c))@[(qStart, (ActCheck(b)), qi)]
+    | Choice(gc1, gc2) -> (edgesGC(qStart, qEnd, gc1))@(edgesGC(qStart, qEnd, gc2))
+    
+and doneGC (gCommand:guardedCommand) : bexpr =
+    match gCommand with
+    | Pred(b, c) ->       NEG(b)
+    | Choice(gc1, gc2) -> And2((doneGC(gc1)), (doneGC(gc2)))
 
-// We implement here the function that interacts with the user
-//let rec compute =
-//        (* printf "Enter a GCL program: "
-//        try
-//        // We parse the input string
-//        let e = parse (Console.ReadLine())
-//        // and print the result of evaluating it *)
-        
-//        printfn "Result: \n%s" (evalC(parse program) 0)
+//
+// TASK 1
+//
+let rec tab = function
+    | 0 -> ""
+    | n -> "    " + tab(n-1)
 
-(*
-let rec compile determinstic =
-    det <- determinstic
-    printfn "Result: \n%s" (compileC(parse program) "qs" "qe")
-*)
+let rec CToString e n =
+    match e with
+    | Assign(x, a) -> tab(n) + x + " := " + AToString(a)
+    | ArrAssign(A,i,a) -> tab(n) + " " + A + "[" + AToString(i) + "]" + " = " + AToString(a)
+    | Skip -> tab(n) + "Skip"
+    | SemiColon(c1,c2) -> CToString c1 n + "; \n" + CToString c2 n
+    | Iffi(gc) -> tab(n) + "if " + GCToString gc (n+1) + "\nfi"
+    | Dood(gc) -> tab(n) + "do " + GCToString gc (n+1) + "\nod"
+and AToString e =
+    match e with
+    | Num(n) -> string n
+    | Var(x) -> x
+    | APar(a) -> "(" + AToString(a) + ")"
+    | ArrayIndex(A,i) -> A + "[" + AToString(i) + "]"
+    | Times(a1,a2) -> AToString(a1) + " * " + AToString(a2)
+    | Div(a1,a2) -> AToString(a1) + " / " + AToString(a2)
+    | Plus(a1,a2) -> AToString(a1) + " + " + AToString(a2)
+    | Minus(a1,a2) -> AToString(a1) + " - " + AToString(a2)
+    | Pow(a1,a2) -> AToString(a1) + "^" + AToString(a2)
+    | UMinus(a) -> "-" + AToString(a)
+and BToString e = 
+    match e with
+    | T -> "true"
+    | F -> "false"
+    | BPar(b) -> "(" + BToString(b) + ")"
+    | And1(b1,b2) -> BToString(b1) + " & " + BToString(b2)
+    | Or1(b1,b2) -> BToString(b1) + " | " + BToString(b2)
+    | And2(b1,b2) -> BToString(b1) + " && " + BToString(b2)
+    | Or2(b1,b2) -> BToString(b1) + " || " + BToString(b2)
+    | NEG(b) -> "!" + BToString(b)
+    | EQ(a1,a2) -> AToString(a1) + " = " + AToString(a2)
+    | NEQ(a1,a2) -> AToString(a1) + " != " + AToString(a2)
+    | GT(a1,b2) -> AToString(a1) + " > " + AToString(b2)
+    | GEQ(a1,a2) -> AToString(a1) + " >= " + AToString(a2)
+    | LT(a1,a2) -> AToString(a1) + " < " + AToString(a2)
+    | LEQ(a1,a2) -> AToString(a1) + " <= " + AToString(a2)
+and GCToString e n =
+    match e with
+    | Pred(b,c) -> BToString(b) + " -> \n" + CToString c n
+    | Choice(gc1,gc2) -> tab(n) + GCToString gc1 n + "\n[]\n" + GCToString gc2 n
 
-let rec run endNode node edgeMap varMap arrMap =
-    printfn "---- %s ----" node
+let printAST program =
+    let ast = parse program
+    printf "%s" (CToString ast 0)
+
+//
+// TASK 2
+//
+let getLabel((qStart:string), (action:action), (qEnd:string)) : string =
+    match action with
+    | ActAssign(x, a) ->       qStart + " -> " + qEnd + " [label = \"" + x + " := " + AToString(a) + "\"];\n"
+    | ActArrAssign(A, i, a) -> qStart + " -> " + qEnd + " [label = \"" + A + "[" + AToString(i) + "] := " + AToString(a) + "\"];\n"
+    | ActSkip ->               qStart + " -> " + qEnd + " [label = \"Skip\"];\n"
+    | ActCheck(b) ->           qStart + " -> " + qEnd + " [label = \"" + BToString(b) + "\"];\n"
+
+let printLabels program =
+    let programGraph = edgesC("qs", "qe", (parse program))
+    for edge in programGraph do
+        printf "%s" (getLabel edge)
+
+//
+// TASK 3
+//
+let stupidOr b1 b2 = if not b1 then b2 else if b2 then true else false
+
+let stupidAnd b1 b2 = if b1 then b2 else if b2 then false else false
+
+let rec insertAt x i A =
+    match i, A with
+    | 0, _::xs -> x::xs
+    | n, y::xs -> y::(insertAt x (n - 1) xs)
+    | _, [] -> raise (System.ArgumentException("Index out of range"))
+
+let rec evalMemA (a:aexpr) ((varMap:Map<string, int>), (arrMap:Map<string, List<int>>)) : int =
+    match a with
+    | Num(n) -> n
+    | Var(x) -> Map.find x varMap
+    | APar(a) -> evalMemA a (varMap, arrMap)
+    | ArrayIndex(A,i) -> List.item (evalMemA i (varMap, arrMap)) (Map.find A arrMap)
+    | Times(a1,a2) -> (evalMemA a1 (varMap, arrMap)) * (evalMemA a2 (varMap, arrMap))
+    | Div(a1,a2) -> (evalMemA a1 (varMap, arrMap)) / (evalMemA a2 (varMap, arrMap))
+    | Plus(a1,a2) -> (evalMemA a1 (varMap, arrMap)) + (evalMemA a2 (varMap, arrMap))
+    | Minus(a1,a2) -> (evalMemA a1 (varMap, arrMap)) - (evalMemA a2 (varMap, arrMap))
+    | Pow(a1,a2) -> pown (evalMemA a1 (varMap, arrMap)) (evalMemA a2 (varMap, arrMap))
+    | UMinus(a) -> (-1) * (evalMemA a (varMap, arrMap))
+
+let rec evalMemB (b:bexpr) ((varMap:Map<string, int>), (arrMap:Map<string, List<int>>)) : bool =
+    match b with
+    | T -> true
+    | F -> false
+    | BPar(b) -> evalMemB b (varMap, arrMap)
+    | And1(b1,b2) -> stupidAnd (evalMemB b1 (varMap, arrMap)) (evalMemB b2 (varMap, arrMap))
+    | Or1(b1,b2) -> stupidOr (evalMemB b1 (varMap, arrMap)) (evalMemB b2 (varMap, arrMap))
+    | And2(b1,b2) -> (evalMemB b1 (varMap, arrMap)) && (evalMemB b2 (varMap, arrMap))
+    | Or2(b1,b2) -> (evalMemB b1 (varMap, arrMap)) || (evalMemB b2 (varMap, arrMap))
+    | NEG(b) -> not (evalMemB b (varMap, arrMap))
+    | EQ(a1,a2) -> (evalMemA a1 (varMap, arrMap)) = (evalMemA a2 (varMap, arrMap))
+    | NEQ(a1,a2) -> (evalMemA a1 (varMap, arrMap)) <> (evalMemA a2 (varMap, arrMap))
+    | GT(a1,a2) -> (evalMemA a1 (varMap, arrMap)) > (evalMemA a2 (varMap, arrMap))
+    | GEQ(a1,a2) -> (evalMemA a1 (varMap, arrMap)) >= (evalMemA a2 (varMap, arrMap))
+    | LT(a1,a2) -> (evalMemA a1 (varMap, arrMap)) < (evalMemA a2 (varMap, arrMap))
+    | LEQ(a1,a2) -> (evalMemA a1 (varMap, arrMap)) <= (evalMemA a2 (varMap, arrMap))
+
+let rec evalMem((qStart:string), (action:action), (qEnd:string)) ((varMap:Map<string, int>), (arrMap:Map<string, List<int>>)) : (string * Map<string, int> * Map<string, List<int>>) =
+    match action with
+    | ActAssign(x, a) ->       if (Map.containsKey x varMap) then
+                                   let newVarMap = Map.add x (evalMemA a (varMap, arrMap)) varMap
+                                   (qEnd, newVarMap, arrMap)
+                               else
+                                   raise (System.ArgumentException("Assignment failed"))
+    | ActArrAssign(A, i, a) -> if (Map.containsKey A arrMap) then
+                                   let newArrMap = Map.add A (insertAt (evalMemA a (varMap, arrMap)) (evalMemA i (varMap, arrMap)) (Map.find A arrMap)) arrMap
+                                   (qEnd, varMap, newArrMap)
+                               else
+                                   raise (System.ArgumentException("Assignment failed"))
+    | ActSkip ->               (qEnd, varMap, arrMap)
+    | ActCheck(b) ->           if (evalMemB b (varMap, arrMap)) then
+                                   (qEnd, varMap, arrMap)
+                               else
+                                   raise (System.ArgumentException("Check failed"))
+
+let rec run endNode currentNode programGraph varMap arrMap =
+    printfn "---- %s ----" currentNode
     for entry in (varMap:Map<string, int>) do
         printfn "%s = %d" entry.Key entry.Value
 
@@ -294,72 +187,74 @@ let rec run endNode node edgeMap varMap arrMap =
 
     printfn ""
 
+    let rec evalEdges (varMap, arrMap) = function
+        | [edge] ->                      evalMem edge (varMap, arrMap)
+        | (qs, ActCheck(b), qe)::rest -> try evalMem (qs, ActCheck(b), qe) (varMap, arrMap)
+                                         with
+                                         | :? _ -> evalEdges (varMap, arrMap) rest
+        | _ ->                           raise (System.Exception("No outgoing edges"))
+
     let (next, v, a) = 
-        try 
-            (Map.find node edgeMap) (varMap, arrMap)
+        try let currentEdges = List.filter (fun (sNode, _, _) -> sNode = currentNode) programGraph
+            evalEdges (varMap, arrMap) currentEdges
         with
         | :? _ -> ("stuck", varMap, arrMap)
 
     if (next = endNode) then (next, v, a, "TERMINATED")
     elif (next = "stuck") then (next, v, a, "STUCK")
-    else run endNode next edgeMap v a
+    else run endNode next programGraph v a
 
-//let rec interpret deterministic =
-//    det <- deterministic
-//    let varMap = Map.ofList [("i", 0); ("j", 0); ("n", 5); ("t", 0)]
-//    let arrMap = Map.ofList [("A", [2])]
-//    let inputEdges = Map.ofList []
-//    let outputEdges = interpretC(parse program) "qs" "qe" inputEdges
-//    let (endNode, v, a, s) = run "qe" "qs" outputEdges varMap arrMap
+let interpret program varMap arrMap =
+    let programGraph = edgesC("qs", "qe", (parse program))
+    let (endNode, v, a, s) = run "qe" "qs" programGraph varMap arrMap
 
-//    printfn "---- %s ----" endNode
-//    for entry in (v:Map<string, int>) do
-//        printfn "%s = %d" entry.Key entry.Value
+    printfn "---- %s ----" endNode
+    for entry in (v:Map<string, int>) do
+        printfn "%s = %d" entry.Key entry.Value
     
-//    for entry in (a:Map<string, List<int>>) do
-//        printf "%s = [" entry.Key
-//        match entry.Value with
-//        | v::vs -> printf "%d" v
-//                   for number in (vs) do
-//                       printf ", %d" number
-//        | [] -> printf ""
-//        printfn "]"
+    for entry in (a:Map<string, List<int>>) do
+        printf "%s = [" entry.Key
+        match entry.Value with
+        | v::vs -> printf "%d" v
+                   for number in (vs) do
+                       printf ", %d" number
+        | [] -> printf ""
+        printfn "]"
 
-//    printfn "STATUS: %s" s
+    printfn "STATUS: %s" s
 
-let getDomP pg =
-    let isDoNode = function
-        | PSplit(_, isDo) -> isDo
-        | _ -> false
+//
+// TASK 4
+//
+let getPointingEdges node programGraph =
+    let tryGetPointingEdge = function
+        | (qs, action, qe) when qe = node -> Some(qs, action, qe)
+        | _ ->                            None
 
-    Map.fold (fun domP q path -> if (isDoNode path) then (domP@[q]) else domP) [] pg
-
-let getPointingEdges q pg =
-    let isPointingEdge = function
-        | PCommand(pointingTo, command) when pointingTo = q -> Some(command)
-        | PSplit(pathList, _) -> match List.tryFind (fun (pointingTo, _) -> pointingTo = q) pathList with
-                                | Some(_, bexpr) -> Some(bexpr)
-                                | _ -> None
-        | _ -> None
-
-    let addToPointingEdges pointingEdges pointingFrom path =
-        match isPointingEdge path with
-        | Some(shortpath) -> (pointingFrom, shortpath)::pointingEdges
+    let addToPointingEdges pointingEdges edge =
+        match tryGetPointingEdge edge with
+        | Some(pointingEdge) -> (pointingEdge)::pointingEdges
         | _ -> pointingEdges
 
-    // fold: (’a -> ’b -> ’c -> ’a) -> ’a -> Map<’b, ’c> -> ’a
+    // fold: (’a -> ’b -> ’a) -> ’a -> List<’b> -> ’a
     // fold: (List<(string, shortPath)> -> string -> path -> List<(string, shortPath)>) -> List<(string, shortPath)> -> Map<string, path> -> List<(string, shortPath)>
-    Map.fold addToPointingEdges [] pg
+    List.fold addToPointingEdges [] programGraph
 
-let rec getSPFs qs edges qe pg domP =
-    List.fold (fun fragmentSet (q, shortpath) -> if (List.contains q domP) then (q, (shortpath::edges), qe)::fragmentSet else (getSPFs q (shortpath::edges) qe pg domP)@fragmentSet) [] (getPointingEdges qs pg)
+let isDoNode node programGraph =
+    let pointingEdges = getPointingEdges node programGraph
+    (node = "qs" && (not (List.isEmpty pointingEdges))) || (node <> "qs" && List.length pointingEdges > 1)
 
-let replaceVar x (action:action) =
+let getDomP programGraph =
+    List.map (fun (qs, _, _) -> qs) (List.filter (fun (qs, _, _) -> isDoNode qs programGraph) programGraph)
+
+
+let rec getSPFs qStart edges qEnd pg domP =
+    List.fold (fun fragmentSet (qs, action, _) -> if (List.contains qs domP) then (qs, (action::edges), qEnd)::fragmentSet else (getSPFs qs (action::edges) qEnd pg domP)@fragmentSet) [] (getPointingEdges qStart pg)
+
+let replaceVar varName (action:action) =
     match action with
-    | ACommand(c) -> match c with
-                    | Assign(s, a) when s = x -> a
-                    | _ -> Var(x)
-    | _ -> Var(x)
+    | ActAssign(x, a) when x = varName -> a
+    | _ -> Var(varName)
 
 let rec exprAreEqual expr1 expr2 =
     match (expr1, expr2) with
@@ -375,12 +270,10 @@ let rec exprAreEqual expr1 expr2 =
     | ((Pow(a11, a12)), (Pow(a21, a22))) -> (exprAreEqual a11 a21) && (exprAreEqual a12 a22)
     | _ -> false
 
-let replaceArr A i (action:action) =
+let replaceArr arrName index (action:action) =
     match action with
-    | ACommand(c) -> match c with
-                    | ArrAssign(s, index, a) when (s = A) && (exprAreEqual index i) -> a
-                    | _ -> ArrayIndex(A, i)
-    | _ -> ArrayIndex(A, i)
+    | ActArrAssign(A, i, a) when (A = arrName) && (exprAreEqual i index) -> a
+    | _ -> ArrayIndex(arrName, index)
 
 let rec transformArithmetic (expr:aexpr) (action:action) =
     match expr with
@@ -439,12 +332,10 @@ let getProofObligation(predS, actionList, predE) =
     let predT = List.fold transformPredicate predE actionList
     (pexprToString predS) + " => " + (pexprToString predT)
 
-
-
 let rec verify program startPhi endPhi loopPhis =
     let startNode = "qs"
     let endNode = "qe"
-    let pg = buildC(parse program) startNode endNode (Map.ofList [])
+    let pg = edgesC(startNode, endNode, (parse program))
     // Get Dom(P) DONE
     let domP = [startNode]@(getDomP pg)@[endNode]
     // Get SPFs DONE
@@ -462,11 +353,16 @@ let rec verify program startPhi endPhi loopPhis =
             let index = List.findIndex (fun n -> n = node) domP
             List.item (index - 1) loopPhis
 
-    let predicatePathFragments = List.map (fun (sNode, pathList, eNode) -> (mapNodeToPredicate sNode, pathList, mapNodeToPredicate eNode)) spfs
+    let predicatePathFragments = List.map (fun (sNode, actionList, eNode) -> (mapNodeToPredicate sNode, actionList, mapNodeToPredicate eNode)) spfs
     let proofObligations = List.map getProofObligation predicatePathFragments
 
     for obligation in proofObligations do
         printfn "%s" obligation
+
+//
+// TASK 5
+//
+
 
 // Start interacting with the user
 let program = "z:=0;
@@ -474,8 +370,26 @@ do y>0 -> z:=z+x;
 y:=y-1
 od"
 
+let varMap = Map.ofList [("x", 3); ("y", 4); ("z", 0); ("n", 5); ("t", 0)]
+let arrMap = Map.ofList [("A", [2])]
+
 let startPhi = PAnd(PEQ(Var("x"), Num(3)), PEQ(Var("y"), Num(2)))
 let endPhi = PEQ(Var("z"), Num(6))
 let loopPhis = [PEQ(Var("z"), Times(Var("x"), Minus(Num(2), Var("y"))))]
 
-verify program startPhi endPhi loopPhis
+//verify program startPhi endPhi loopPhis
+
+// Task 1: Pretty print program
+//printAST program
+
+// Task 2: Print program labels in Graphviz format
+//fresh <- 1
+//printLabels program
+
+// Task 3: Print state for each step of the program
+//fresh <- 1
+//interpret program varMap arrMap
+
+// Task 4: 
+//fresh <- 1
+//verify program startPhi endPhi loopPhis
