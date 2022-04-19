@@ -69,6 +69,6 @@ type pexpr =
     | PLEQ of (aexpr * aexpr)
 
 type sign =
-    | PLUS
-    | MINUS
-    | ZERO
+    | PLUSSIGN
+    | MINUSSIGN
+    | ZEROSIGN

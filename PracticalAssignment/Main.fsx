@@ -1,7 +1,6 @@
 ﻿#r "10.0.0/lib/net46/FsLexYacc.Runtime.dll"
 
 open FSharp.Text.Lexing
-open FSharpx.Collections
 open System
 #load "TypesAST.fs"
 open TypesAST
@@ -367,66 +366,66 @@ let rec cartesian setA setB f =
     Set.fold (fun stateA signA -> Set.union stateA (Set.fold (fun stateB signB -> Set.union stateB (f signA signB)) Set.empty setB)) Set.empty setA
 
 let flipSign = function
-    | MINUS -> PLUS
-    | PLUS -> MINUS
-    | ZERO -> ZERO
+    | MINUSSIGN -> PLUSSIGN
+    | PLUSSIGN -> MINUSSIGN
+    | ZEROSIGN -> ZEROSIGN
 
 let signPlus sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, PLUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
-    | (MINUS, _) -> Set.empty.Add(MINUS)
-    | (ZERO, sign) -> Set.empty.Add(sign)
-    | (PLUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
-    | (PLUS, _) -> Set.empty.Add(PLUS)
+    | (MINUSSIGN, PLUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(ZEROSIGN).Add(PLUSSIGN)
+    | (MINUSSIGN, _) -> Set.empty.Add(MINUSSIGN)
+    | (ZEROSIGN, sign) -> Set.empty.Add(sign)
+    | (PLUSSIGN, MINUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(ZEROSIGN).Add(PLUSSIGN)
+    | (PLUSSIGN, _) -> Set.empty.Add(PLUSSIGN)
     | _ -> Set.empty
     
 let signMinus sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
-    | (MINUS, _) -> Set.empty.Add(MINUS)
-    | (ZERO, sign) -> Set.empty.Add(flipSign sign)
-    | (PLUS, PLUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
-    | (PLUS, _) -> Set.empty.Add(PLUS)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(ZEROSIGN).Add(PLUSSIGN)
+    | (MINUSSIGN, _) -> Set.empty.Add(MINUSSIGN)
+    | (ZEROSIGN, sign) -> Set.empty.Add(flipSign sign)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(ZEROSIGN).Add(PLUSSIGN)
+    | (PLUSSIGN, _) -> Set.empty.Add(PLUSSIGN)
     | _ -> Set.empty
 
 let signTimes sign1 sign2 =
     match sign1, sign2 with
-    | (ZERO, _) -> Set.empty.Add(ZERO)
-    | (_, ZERO) -> Set.empty.Add(ZERO)
-    | (MINUS, sign) -> Set.empty.Add(flipSign sign)
-    | (sign, MINUS) -> Set.empty.Add(flipSign sign)
-    | (PLUS, PLUS) -> Set.empty.Add(PLUS)
+    | (ZEROSIGN, _) -> Set.empty.Add(ZEROSIGN)
+    | (_, ZEROSIGN) -> Set.empty.Add(ZEROSIGN)
+    | (MINUSSIGN, sign) -> Set.empty.Add(flipSign sign)
+    | (sign, MINUSSIGN) -> Set.empty.Add(flipSign sign)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(PLUSSIGN)
     | _ -> Set.empty
     
 let signDiv sign1 sign2 =
     match sign1, sign2 with
-    | (ZERO, _) -> Set.empty.Add(ZERO)
-    | (_, ZERO) -> Set.empty
-    | (MINUS, sign) -> Set.empty.Add(flipSign sign).Add(ZERO)
-    | (sign, MINUS) -> Set.empty.Add(flipSign sign).Add(ZERO)
-    | (PLUS, PLUS) -> Set.empty.Add(PLUS).Add(ZERO)
+    | (ZEROSIGN, _) -> Set.empty.Add(ZEROSIGN)
+    | (_, ZEROSIGN) -> Set.empty // Throw error here? But where catch?
+    | (MINUSSIGN, sign) -> Set.empty.Add(flipSign sign).Add(ZEROSIGN)
+    | (sign, MINUSSIGN) -> Set.empty.Add(flipSign sign).Add(ZEROSIGN)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(PLUSSIGN).Add(ZEROSIGN)
     | _ -> Set.empty
     
 let signUnary sign = flipSign sign
 
 let signPow sign1 sign2 =
     match sign1, sign2 with
-    | (_, ZERO) -> Set.empty.Add(PLUS)
-    | (ZERO, MINUS) -> Set.empty
-    | (ZERO, PLUS) -> Set.empty.Add(ZERO)
-    | (MINUS, MINUS) -> Set.empty.Add(MINUS).Add(ZERO).Add(PLUS)
-    | (MINUS, PLUS) -> Set.empty.Add(MINUS).Add(PLUS)
-    | (PLUS, MINUS) -> Set.empty.Add(PLUS).Add(ZERO)
-    | (PLUS, PLUS) -> Set.empty.Add(PLUS)
+    | (_, ZEROSIGN) -> Set.empty.Add(PLUSSIGN)
+    | (ZEROSIGN, MINUSSIGN) -> Set.empty
+    | (ZEROSIGN, PLUSSIGN) -> Set.empty.Add(ZEROSIGN)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(ZEROSIGN).Add(PLUSSIGN)
+    | (MINUSSIGN, PLUSSIGN) -> Set.empty.Add(MINUSSIGN).Add(PLUSSIGN)
+    | (PLUSSIGN, MINUSSIGN) -> Set.empty.Add(PLUSSIGN).Add(ZEROSIGN)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(PLUSSIGN)
 
 let rec signEvalA a varSigns arrSigns =
     match a with
-    | Num(n) -> if (n > 0) then Set.singleton(PLUS)
-                elif (n < 0) then Set.singleton(MINUS)
-                else Set.singleton(ZERO)
+    | Num(n) -> if (n > 0) then Set.singleton(PLUSSIGN)
+                elif (n < 0) then Set.singleton(MINUSSIGN)
+                else Set.singleton(ZEROSIGN)
     | Var(x) -> Set.singleton(Map.find x varSigns)
     | APar(a) -> signEvalA a varSigns arrSigns
-    | ArrayIndex(A, i) -> if (not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZERO; PLUS])))) then
+    | ArrayIndex(A, i) -> if (not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZEROSIGN; PLUSSIGN])))) then
                               Map.find A arrSigns
                           else
                               Set.empty
@@ -445,53 +444,53 @@ let signOr b1 b2 =
 
 let signEQ sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
-    | (MINUS, _) -> Set.empty.Add(false)
-    | (ZERO, ZERO) -> Set.empty.Add(true)
-    | (ZERO, _) -> Set.empty.Add(false)
-    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
-    | (PLUS, _) -> Set.empty.Add(false)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (MINUSSIGN, _) -> Set.empty.Add(false)
+    | (ZEROSIGN, ZEROSIGN) -> Set.empty.Add(true)
+    | (ZEROSIGN, _) -> Set.empty.Add(false)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (PLUSSIGN, _) -> Set.empty.Add(false)
 
 let signNEQ sign1 sign2 =
     Set.map not (signEQ sign1 sign2)
 
 let signGT sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
-    | (MINUS, _) -> Set.empty.Add(false)
-    | (ZERO, MINUS) -> Set.empty.Add(true)
-    | (ZERO, ZERO) -> Set.empty.Add(false)
-    | (ZERO, PLUS) -> Set.empty.Add(false)
-    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
-    | (PLUS, _) -> Set.empty.Add(true)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (MINUSSIGN, _) -> Set.empty.Add(false)
+    | (ZEROSIGN, MINUSSIGN) -> Set.empty.Add(true)
+    | (ZEROSIGN, ZEROSIGN) -> Set.empty.Add(false)
+    | (ZEROSIGN, PLUSSIGN) -> Set.empty.Add(false)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (PLUSSIGN, _) -> Set.empty.Add(true)
 
 let signGEQ sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
-    | (MINUS, _) -> Set.empty.Add(false)
-    | (ZERO, PLUS) -> Set.empty.Add(false)
-    | (ZERO, _) -> Set.empty.Add(true)
-    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
-    | (PLUS, _) -> Set.empty.Add(true)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (MINUSSIGN, _) -> Set.empty.Add(false)
+    | (ZEROSIGN, PLUSSIGN) -> Set.empty.Add(false)
+    | (ZEROSIGN, _) -> Set.empty.Add(true)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (PLUSSIGN, _) -> Set.empty.Add(true)
     
 let signLT sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
-    | (MINUS, _) -> Set.empty.Add(true)
-    | (ZERO, MINUS) -> Set.empty.Add(false)
-    | (ZERO, ZERO) -> Set.empty.Add(false)
-    | (ZERO, PLUS) -> Set.empty.Add(true)
-    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
-    | (PLUS, _) -> Set.empty.Add(false)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (MINUSSIGN, _) -> Set.empty.Add(true)
+    | (ZEROSIGN, MINUSSIGN) -> Set.empty.Add(false)
+    | (ZEROSIGN, ZEROSIGN) -> Set.empty.Add(false)
+    | (ZEROSIGN, PLUSSIGN) -> Set.empty.Add(true)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (PLUSSIGN, _) -> Set.empty.Add(false)
 
 let signLEQ sign1 sign2 =
     match sign1, sign2 with
-    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
-    | (MINUS, _) -> Set.empty.Add(true)
-    | (ZERO, MINUS) -> Set.empty.Add(false)
-    | (ZERO, _) -> Set.empty.Add(true)
-    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
-    | (PLUS, _) -> Set.empty.Add(false)
+    | (MINUSSIGN, MINUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (MINUSSIGN, _) -> Set.empty.Add(true)
+    | (ZEROSIGN, MINUSSIGN) -> Set.empty.Add(false)
+    | (ZEROSIGN, _) -> Set.empty.Add(true)
+    | (PLUSSIGN, PLUSSIGN) -> Set.empty.Add(true).Add(false)
+    | (PLUSSIGN, _) -> Set.empty.Add(false)
 
 let rec signEvalB b varSigns arrSigns =
     match b with
@@ -518,7 +517,7 @@ let signAnalysis action varSigns arrSigns =
                              Set.fold (fun M expr -> Set.add ((Map.add x expr varSigns), arrSigns) M) Set.empty aSet
                          else
                              Set.empty
-    | ActArrAssign(A, i, a) -> if ((Map.containsKey A arrSigns) && not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZERO; PLUS])))) then
+    | ActArrAssign(A, i, a) -> if ((Map.containsKey A arrSigns) && not (Set.isEmpty (Set.intersect (signEvalA i varSigns arrSigns) (set [ZEROSIGN; PLUSSIGN])))) then
                                    let aSet = signEvalA a varSigns arrSigns
                                    //(Set<Set<sign>> -> sign -> Set<Set<sign>>) -> Set<Set<sign>> -> sign set -> Set<Set<sign>>
                                    let setWithPrime = Map.find A arrSigns
@@ -532,17 +531,52 @@ let signAnalysis action varSigns arrSigns =
                          Set.singleton(varSigns, arrSigns)
                      else
                          Set.empty
-    | Skip -> Set.singleton(varSigns, arrSigns)
+    | ActSkip -> Set.singleton(varSigns, arrSigns)
 
-let rec signAnalysisAlgorithm nodeList programGraph startNode M =
-    let mutable A = Map.add startNode M (Map.ofList (List.map (fun n -> (n, Set.empty)) nodeList))
+let rec signAnalysisAlgorithm program mStart =
+    let startNode = "qs"
+    let endNode = "qe"
+    let programGraph = edgesC(startNode, endNode, (parse program))
+    let nodeList = Set.toList (Set.ofList (List.fold (fun state (sNode, _, eNode) -> sNode::eNode::state) [] programGraph))
+    let mutable A = Map.add startNode mStart (Map.ofList (List.map (fun n -> (n, Set.empty)) nodeList))
     let mutable W = [startNode]
     while (not (List.isEmpty W)) do
         let q = List.head W
         W <- List.tail W
-        for (qStart action qEnd) in (List.filter (fun (qs, _, _) -> qs = q) programGraph) do
-            // TODO: For each varSign/arrSign tuple in M, run signanalysis for the action, and union the results together
-            let analysis = signAnalysis action 
+        for (qStart, action, qEnd) in (List.filter (fun (qs, _, _) -> qs = q) programGraph) do
+            // TODO: For each varSign/arrSign tuple in A[qStart], run signanalysis for the action, and union the results together
+            // The results go in A[qEnd], and qEnd should be added to A if A[qEnd] changes.
+            let analAss = Set.fold (fun state (varSigns, arrSigns) -> Set.union state (signAnalysis action varSigns arrSigns)) Set.empty (Map.find qStart A)
+            if not (Set.isSubset analAss (Map.find qEnd A)) then
+                A <- Map.add qEnd (Set.union analAss (Map.find qEnd A)) A
+                W <- W@[qEnd]
+    A
+
+let signToString sign =
+    match sign with
+    | PLUSSIGN -> "+"
+    | ZEROSIGN -> "0"
+    | _ -> "-"
+
+let rec signListToString signList =
+    match signList with
+    | [sign] -> signToString sign
+    | sign::rest -> (signToString sign) + ", " + (signListToString rest)
+    | [] -> ""
+
+let signSetToString signSet =
+    signListToString (Set.toList signSet)
+
+let signMemToString varSigns arrSigns =
+    let vars = Map.fold (fun state key value -> state + key + ": " + (signToString value) + " ") "" varSigns
+    Map.fold (fun state key value -> state + key + ": {" + (signSetToString value) + "} ") vars arrSigns
+
+let printAnalAss (A:Map<string, Set<(Map<string, sign> * Map<string, Set<sign>>)>>) =
+    for entry in A do
+        printf "%s | " entry.Key
+        for (varSigns, arrSigns) in entry.Value do
+            printf "{%s} " (signMemToString varSigns arrSigns)
+        printfn ""
 
 // Start interacting with the user
 let program = "z:=0;
@@ -556,6 +590,10 @@ let arrMap = Map.ofList [("A", [2])]
 let startPhi = PAnd(PEQ(Var("x"), Num(3)), PEQ(Var("y"), Num(2)))
 let endPhi = PEQ(Var("z"), Num(6))
 let loopPhis = [PEQ(Var("z"), Times(Var("x"), Minus(Num(2), Var("y"))))]
+
+let varSigns = Map.ofList [("x", MINUSSIGN); ("y", PLUSSIGN); ("z", PLUSSIGN); ("n", PLUSSIGN)]
+let arrSigns = Map.ofList [("A", (Set.ofList [PLUSSIGN; ZEROSIGN; MINUSSIGN]))]
+let mStart = Set.ofList [(varSigns, arrSigns)]
 
 //verify program startPhi endPhi loopPhis
 
@@ -573,3 +611,7 @@ let loopPhis = [PEQ(Var("z"), Times(Var("x"), Minus(Num(2), Var("y"))))]
 // Task 4: 
 //fresh <- 1
 //verify program startPhi endPhi loopPhis
+
+// Task 5:
+fresh <- 1
+printAnalAss (signAnalysisAlgorithm program mStart)
