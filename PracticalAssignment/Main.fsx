@@ -1,6 +1,7 @@
 ﻿#r "10.0.0/lib/net46/FsLexYacc.Runtime.dll"
 
 open FSharp.Text.Lexing
+open FSharpx.Collections
 open System
 #load "TypesAST.fs"
 open TypesAST
@@ -436,7 +437,78 @@ let rec signEvalA a varSigns arrSigns =
     | UMinus(a) -> Set.fold (fun state sign -> Set.add (signUnary sign) state) Set.empty (signEvalA a varSigns arrSigns)
     | Pow(a1, a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signPow
 
-// TODO: signEvalB
+let signAnd b1 b2 =
+    Set.singleton(b1 && b2)
+
+let signOr b1 b2 =
+    Set.singleton(b1 || b2)
+
+let signEQ sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
+    | (MINUS, _) -> Set.empty.Add(false)
+    | (ZERO, ZERO) -> Set.empty.Add(true)
+    | (ZERO, _) -> Set.empty.Add(false)
+    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
+    | (PLUS, _) -> Set.empty.Add(false)
+
+let signNEQ sign1 sign2 =
+    Set.map not (signEQ sign1 sign2)
+
+let signGT sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
+    | (MINUS, _) -> Set.empty.Add(false)
+    | (ZERO, MINUS) -> Set.empty.Add(true)
+    | (ZERO, ZERO) -> Set.empty.Add(false)
+    | (ZERO, PLUS) -> Set.empty.Add(false)
+    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
+    | (PLUS, _) -> Set.empty.Add(true)
+
+let signGEQ sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
+    | (MINUS, _) -> Set.empty.Add(false)
+    | (ZERO, PLUS) -> Set.empty.Add(false)
+    | (ZERO, _) -> Set.empty.Add(true)
+    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
+    | (PLUS, _) -> Set.empty.Add(true)
+    
+let signLT sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
+    | (MINUS, _) -> Set.empty.Add(true)
+    | (ZERO, MINUS) -> Set.empty.Add(false)
+    | (ZERO, ZERO) -> Set.empty.Add(false)
+    | (ZERO, PLUS) -> Set.empty.Add(true)
+    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
+    | (PLUS, _) -> Set.empty.Add(false)
+
+let signLEQ sign1 sign2 =
+    match sign1, sign2 with
+    | (MINUS, MINUS) -> Set.empty.Add(true).Add(false)
+    | (MINUS, _) -> Set.empty.Add(true)
+    | (ZERO, MINUS) -> Set.empty.Add(false)
+    | (ZERO, _) -> Set.empty.Add(true)
+    | (PLUS, PLUS) -> Set.empty.Add(true).Add(false)
+    | (PLUS, _) -> Set.empty.Add(false)
+
+let rec signEvalB b varSigns arrSigns =
+    match b with
+    | T -> Set.singleton(true)
+    | F -> Set.singleton(false)
+    | BPar(b) -> signEvalB b varSigns arrSigns
+    | And1(b1,b2) -> cartesian (signEvalB b1 varSigns arrSigns) (signEvalB b2 varSigns arrSigns) signAnd
+    | Or1(b1,b2) -> cartesian (signEvalB b1 varSigns arrSigns) (signEvalB b2 varSigns arrSigns) signOr
+    | And2(b1,b2) -> cartesian (signEvalB b1 varSigns arrSigns) (signEvalB b2 varSigns arrSigns) signAnd
+    | Or2(b1,b2) -> cartesian (signEvalB b1 varSigns arrSigns) (signEvalB b2 varSigns arrSigns) signOr
+    | NEG(b) -> Set.map not (signEvalB b varSigns arrSigns)
+    | EQ(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signEQ
+    | NEQ(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signNEQ
+    | GT(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signGT
+    | GEQ(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signGEQ
+    | LT(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signLT
+    | LEQ(a1,a2) -> cartesian (signEvalA a1 varSigns arrSigns) (signEvalA a2 varSigns arrSigns) signLEQ
 
 let signAnalysis action varSigns arrSigns =
     match action with
@@ -461,6 +533,16 @@ let signAnalysis action varSigns arrSigns =
                      else
                          Set.empty
     | Skip -> Set.singleton(varSigns, arrSigns)
+
+let rec signAnalysisAlgorithm nodeList programGraph startNode M =
+    let mutable A = Map.add startNode M (Map.ofList (List.map (fun n -> (n, Set.empty)) nodeList))
+    let mutable W = [startNode]
+    while (not (List.isEmpty W)) do
+        let q = List.head W
+        W <- List.tail W
+        for (qStart action qEnd) in (List.filter (fun (qs, _, _) -> qs = q) programGraph) do
+            // TODO: For each varSign/arrSign tuple in M, run signanalysis for the action, and union the results together
+            let analysis = signAnalysis action 
 
 // Start interacting with the user
 let program = "z:=0;
