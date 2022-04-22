@@ -42,6 +42,28 @@ and doneGC (gCommand:guardedCommand) : bexpr =
     match gCommand with
     | Pred(b, c) ->       NEG(b)
     | Choice(gc1, gc2) -> And2((doneGC(gc1)), (doneGC(gc2)))
+    
+let rec edgesDC((qStart:string), (qEnd:string), (command:command)) : List<(edge)> =
+    match command with
+    | Assign(x, a) ->       [(qStart, (ActAssign(x,a)), qEnd)]
+    | ArrAssign(A, i, a) -> [(qStart, (ActArrAssign(A,i,a)), qEnd)]
+    | Skip ->               [(qStart, ActSkip, qEnd)]
+    | SemiColon(c1, c2) ->  let qi = "q" + string fresh
+                            fresh <- fresh + 1
+                            (edgesDC(qStart, qi, c1))@(edgesDC(qi, qEnd, c2))
+    | Iffi(gc) ->           let (E, d) = edgesDGC(qStart, qEnd, gc) F
+                            E
+    | Dood(gc) ->           let (E, d) = edgesDGC(qStart, qStart, gc) F
+                            E@[(qStart, (ActCheck(NEG(d))), qEnd)]
+    
+and edgesDGC((qStart:string), (qEnd:string), (gCommand:guardedCommand)) d : (List<(edge)> * bexpr) =
+    match gCommand with
+    | Pred(b, c) ->       let qi = "q" + string fresh
+                          fresh <- fresh + 1
+                          (((edgesDC(qi, qEnd, c))@[(qStart, (ActCheck(And2(b, NEG(d)))), qi)]), (Or2(b, d)))
+    | Choice(gc1, gc2) -> let (E1, d1) = edgesDGC(qStart, qEnd, gc1) d
+                          let (E2, d2) = edgesDGC(qStart, qEnd, gc2) d1
+                          ((E1@E2), d2)
 
 //
 // TASK 1
@@ -106,7 +128,7 @@ let getLabel((qStart:string), (action:action), (qEnd:string)) : string =
     | ActCheck(b) ->           qStart + " -> " + qEnd + " [label = \"" + BToString(b) + "\"];\n"
 
 let printLabels program =
-    let programGraph = edgesC("qs", "qe", (parse program))
+    let programGraph = edgesDC("qs", "qe", (parse program))
     for edge in programGraph do
         printf "%s" (getLabel edge)
 
@@ -613,5 +635,5 @@ let mStart = Set.ofList [(varSigns, arrSigns)]
 //verify program startPhi endPhi loopPhis
 
 // Task 5:
-fresh <- 1
-printAnalAss (signAnalysisAlgorithm program mStart)
+//fresh <- 1
+//printAnalAss (signAnalysisAlgorithm program mStart)
