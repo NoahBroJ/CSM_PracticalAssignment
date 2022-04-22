@@ -600,6 +600,62 @@ let printAnalAss (A:Map<string, Set<(Map<string, sign> * Map<string, Set<sign>>)
             printf "{%s} " (signMemToString varSigns arrSigns)
         printfn ""
 
+//
+// TASK 6 - noget med noget security
+//
+let rec fvA a =
+    match a with
+    | Num(n) -> Set.empty
+    | Var(x) -> Set.singleton(x)
+    | APar(a) -> fvA a
+    | ArrayIndex(A, i) -> Set.union (Set.singleton(A)) (fvA i)
+    | Plus(a1, a2) -> Set.union (fvA a1) (fvA a2)
+    | Minus(a1, a2) -> Set.union (fvA a1) (fvA a2)
+    | Times(a1, a2) -> Set.union (fvA a1) (fvA a2)
+    | Div(a1, a2) -> Set.union (fvA a1) (fvA a2)
+    | UMinus(a) -> fvA a
+    | Pow(a1, a2) -> Set.union (fvA a1) (fvA a2)
+
+let rec fvB b =
+    match b with
+    | T -> Set.empty
+    | F -> Set.empty
+    | BPar(b) -> fvB b
+    | And1(b1,b2) -> Set.union (fvB b1) (fvB b2)
+    | Or1(b1,b2) -> Set.union (fvB b1) (fvB b2)
+    | And2(b1,b2) -> Set.union (fvB b1) (fvB b2)
+    | Or2(b1,b2) -> Set.union (fvB b1) (fvB b2)
+    | NEG(b) -> fvB b
+    | EQ(a1,a2) -> Set.union (fvA a1) (fvA a2)
+    | NEQ(a1,a2) -> Set.union (fvA a1) (fvA a2)
+    | GT(a1,a2) -> Set.union (fvA a1) (fvA a2)
+    | GEQ(a1,a2) -> Set.union (fvA a1) (fvA a2)
+    | LT(a1,a2) -> Set.union (fvA a1) (fvA a2)
+    | LEQ(a1,a2) -> Set.union (fvA a1) (fvA a2)
+
+let rec secC (c:command) (X:Set<string>) (classification:Map<string,string>) (lattice:Map<string,Set<string>>) : bool =
+    match c with
+    | Assign(x, a) -> Set.forall (fun var -> Set.contains (Map.find x classification) (Map.find (Map.find var classification) lattice)) (Set.union X (fvA a))
+    | ArrAssign(A,i,a) -> Set.forall (fun var -> Set.contains (Map.find A classification) (Map.find (Map.find var classification) lattice)) (Set.union (Set.union X (fvA i)) (fvA a))
+    | Skip -> true
+    | SemiColon(c1,c2) -> (secC c1 X classification lattice) && (secC c2 X classification lattice)
+    | Iffi(gc) -> let (w, _) = secGC gc F X classification lattice
+                  w
+    | Dood(gc) -> let (w, _) = secGC gc F X classification lattice
+                  w
+
+and secGC gc d X classification lattice =
+    match gc with
+    | Pred(b,c) -> let w = secC c (Set.union (Set.union X (fvB b)) (fvB d)) classification lattice
+                   (w, Or2(b, d))
+    | Choice(gc1,gc2) -> let (w1, d1) = secGC gc1 d X classification lattice
+                         let (w2, d2) = secGC gc2 d1 X classification lattice
+                         (w1 && w2, d2)
+
+let secAnal program classification lattice =
+    let result = secC (parse program) (Set.empty) classification lattice
+    printfn "%b" result
+
 // Start interacting with the user
 let program = "z:=0;
 do y>0 -> z:=z+x;
@@ -637,3 +693,8 @@ let mStart = Set.ofList [(varSigns, arrSigns)]
 // Task 5:
 //fresh <- 1
 //printAnalAss (signAnalysisAlgorithm program mStart)
+
+// Task 6
+let lattice = Map.ofList [("private", Set.singleton("private")); ("public", Set.ofList ["private"; "public"])]
+let classification = Map.ofList [("x", "public"); ("y", "private"); ("z", "public")]
+secAnal program classification lattice
